@@ -1,0 +1,104 @@
+---
+title: "VR_stress_meta-analysis"
+author: "Tor Finseth"
+date: "1/22/2021"
+output: 
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#NOTE: you will need to install these packages when you run it the first time.
+#install.packages("metafor")
+#install.packages("googlesheets4")
+#install.packages("ggplot2")
+#install.packages("dplyr")
+library(googlesheets4)
+library(metafor) # see https://wviechtb.github.io/metafor/ for documentataion and function descriptions
+library(ggplot2)
+library(dplyr)
+library(plyr)
+```
+
+```{r}
+#read the google spreadsheet
+gs4_deauth()
+VR_study_sprdsht <- read_sheet("https://docs.google.com/spreadsheets/d/113KZYiODuhNoohl2VNSJcs1sUsDmpp_5mnv5egAPHW4/edit?usp=sharing", range = "Outcomes - Consensus!A2:CP29")
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+
+#Calculate cort effect size
+cort_m2i=as.numeric(unlist(select(VR_study_sprdsht,c(6))))#baseline  #select the columns you want, then convert from list to numeric array
+cort_m1i=as.numeric(unlist(select(VR_study_sprdsht,c(11)))) #peak
+cort_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(7)) ))
+cort_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(12)))) 
+cort_n2i=as.numeric(unlist(select(VR_study_sprdsht,c(10))))
+cort_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(15))))
+
+dat <-escalc(measure="SMD", n1i=cort_n1i, n2i=cort_n2i, m1i=cort_m1i, m2i=cort_m2i, sd1i=cort_sd1i, sd2i=cort_sd2i) #SMD=standardized mean difference
+#NOTE: yi=vector to specify the observed effects or outcomes, vi=vector to specify the corresponding sampling variances.
+
+
+############################### CORT FUNNEL PLOT, see https://wviechtb.github.io/metafor/reference/funnel.html#examples ################################
+### random-effects model
+res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+
+### show effect size values on x-axis ,label points outside of the pseudo confidence interval region
+funnel(res) # add ", atransf=exp" in the parentheses to log scale the x-axis
+```
+
+```{r, fig.width=10,fig.height=4} 
+#NOTE:widen plotting device to avoid overlapping text
+
+############################## CORT FOREST PLOT, see https://wviechtb.github.io/metafor/reference/forest.rma.html#examples #########################
+forest(res,header=TRUE, cex=.8)
+forest(res,xlim=c(-20,10), 
+       ilab=cbind(cort_m2i, cort_sd2i, cort_m1i, cort_sd1i),
+       ilab.xpos=c(-9.5,-8,-6,-4.5), cex=.75,
+       header="Author(s) and Year")
+op <- par(cex=.75, font=2)
+text(c(-9.5,-8,-6,-4.5), 6, c("M", "SD", "M", "SD")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     6.7, c("Baseline", "Peak"))
+par(op) # resets the plotting parameters.
+```
+
+```{r, fig.width=10,fig.height=7}
+
+#Calculate HR effect size
+HR_m2i=as.numeric(unlist(select(VR_study_sprdsht,c(26))))#baseline  #select the columns you want, then convert from list to numeric array
+HR_m1i=as.numeric(unlist(select(VR_study_sprdsht,c(31)))) #peak
+HR_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(27)) ))
+HR_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(32)))) 
+HR_n2i=as.numeric(unlist(select(VR_study_sprdsht,c(30))))
+HR_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(35))))
+
+dat <-escalc(measure="SMD", n1i=HR_n1i, n2i=HR_n2i, m1i=HR_m1i, m2i=HR_m2i, sd1i=HR_sd1i, sd2i=HR_sd2i) 
+
+res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+
+funnel(res)
+forest(res,header=TRUE, cex=.8)
+forest(res,xlim=c(-20,10), 
+       ilab=cbind(HR_m2i, HR_sd2i, HR_m1i, HR_sd1i),
+       ilab.xpos=c(-9.5,-8,-6,-4.5), cex=.75,
+       header="Author(s) and Year")
+op <- par(cex=.75, font=2)
+text(c(-9.5,-8,-6,-4.5), 22, c("M", "SD", "M", "SD")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     22.7, c("Baseline", "Peak"))
+par(op) # resets the plotting parameters.
+
+```
+
+
