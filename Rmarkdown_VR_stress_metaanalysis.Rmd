@@ -101,4 +101,29 @@ par(op) # resets the plotting parameters.
 
 ```
 
+```{r, fig.width=10,fig.height=7}
 
+#Calculate SC effect size IN_PROGRESS
+SC_m2i=as.numeric(unlist(select(VR_study_sprdsht,c(80))))#baseline  #select the columns you want, then convert from list to numeric array
+SC_m1i=as.numeric(unlist(select(VR_study_sprdsht,c(85)))) #peak 
+SC_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(81)) )) 
+SC_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(86)))) 
+SC_n2i=as.numeric(unlist(select(VR_study_sprdsht,c(84)))) 
+SC_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(89)))) 
+
+dat <-escalc(measure="SMD", n1i=SC_n1i, n2i=SC_n2i, m1i=SC_m1i, m2i=SC_m2i, sd1i=SC_sd1i, sd2i=SC_sd2i) 
+
+res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+
+funnel(res)
+forest(res,header=TRUE, cex=.8)
+forest(res,xlim=c(-20,10), 
+       ilab=cbind(SC_m2i, SC_sd2i, SC_m1i, SC_sd1i),
+       ilab.xpos=c(-9.5,-8,-6,-4.5), cex=.75,
+       header="Author(s) and Year")
+op <- par(cex=.75, font=2)
+text(c(-9.5,-8,-6,-4.5), 24, c("M", "SD", "M", "SD")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     24.7, c("Baseline", "Peak"))
+par(op) # resets the plotting parameters.
+
+```
