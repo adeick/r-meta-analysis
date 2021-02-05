@@ -27,7 +27,7 @@ library(plyr)
 ```{r}
 #read the google spreadsheet
 gs4_deauth()
-VR_study_sprdsht <- read_sheet("https://docs.google.com/spreadsheets/d/113KZYiODuhNoohl2VNSJcs1sUsDmpp_5mnv5egAPHW4/edit?usp=sharing", range = "Outcomes - Consensus!A2:CP29")
+VR_study_sprdsht <- read_sheet("https://docs.google.com/spreadsheets/d/113KZYiODuhNoohl2VNSJcs1sUsDmpp_5mnv5egAPHW4/edit?usp=sharing", range = "Outcomes - Consensus!A2:CU29")
 
 ```
 
@@ -47,8 +47,9 @@ cort_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(12))))
 cort_n2i=as.numeric(unlist(select(VR_study_sprdsht,c(10))))
 cort_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(15))))
 
-dat <-escalc(measure="SMD", n1i=cort_n1i, n2i=cort_n2i, m1i=cort_m1i, m2i=cort_m2i, sd1i=cort_sd1i, sd2i=cort_sd2i) #SMD=standardized mean difference
+dat <-escalc(measure="SMCC", ni=cort_n2i, m1i=cort_m1i, m2i=cort_m2i, sd1i=cort_sd1i, sd2i=cort_sd2i, ri=rep.int(0.5, 27)) #SMCC= Standardized mean change 
 #NOTE: yi=vector to specify the observed effects or outcomes, vi=vector to specify the corresponding sampling variances.
+#NOte: Is your meta-analysis testing differences across alternate treatments or experimental conditions? If so, the raw score standardization (SMCR) is preferable. If your meta-analysis is primarily concerned with changes in individuals, the change score standardization (SMCC) is better.
 
 
 ############################### CORT FUNNEL PLOT, see https://wviechtb.github.io/metafor/reference/funnel.html#examples ################################
@@ -84,7 +85,7 @@ HR_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(32))))
 HR_n2i=as.numeric(unlist(select(VR_study_sprdsht,c(30))))
 HR_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(35))))
 
-dat <-escalc(measure="SMD", n1i=HR_n1i, n2i=HR_n2i, m1i=HR_m1i, m2i=HR_m2i, sd1i=HR_sd1i, sd2i=HR_sd2i) 
+dat <-escalc(measure="SMCC", ni=HR_n1i, m1i=HR_m1i, m2i=HR_m2i, sd1i=HR_sd1i, sd2i=HR_sd2i, ri=rep.int(0.5, 27)) #SMCC= Standardized mean change 
 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
@@ -101,17 +102,19 @@ par(op) # resets the plotting parameters.
 
 ```
 
+
 ```{r, fig.width=10,fig.height=7}
 
-#Calculate SC effect size IN_PROGRESS
-SC_m2i=as.numeric(unlist(select(VR_study_sprdsht,c(80))))#baseline  #select the columns you want, then convert from list to numeric array
-SC_m1i=as.numeric(unlist(select(VR_study_sprdsht,c(85)))) #peak 
-SC_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(81)) )) 
-SC_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(86)))) 
-SC_n2i=as.numeric(unlist(select(VR_study_sprdsht,c(84)))) 
-SC_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(89)))) 
+#########SKIN CONDUCTANCE ####################
+#Calculate SC effect size
+SC_m2i=as.numeric(unlist(select(VR_study_sprdsht,c(86))))#baseline  #select the columns you want, then convert from list to numeric array
+SC_m1i=as.numeric(unlist(select(VR_study_sprdsht,c(91)))) #peak 
+SC_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(87)) )) 
+SC_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(92)))) 
+SC_n2i=as.numeric(unlist(select(VR_study_sprdsht,c(90)))) 
+SC_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(95)))) 
 
-dat <-escalc(measure="SMD", n1i=SC_n1i, n2i=SC_n2i, m1i=SC_m1i, m2i=SC_m2i, sd1i=SC_sd1i, sd2i=SC_sd2i) 
+dat <-escalc(measure="SMCC", ni=SC_n1i, m1i=SC_m1i, m2i=SC_m2i, sd1i=SC_sd1i, sd2i=SC_sd2i, ri=rep.int(0.5, 27)) #SMCC= Standardized mean change 
 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
@@ -127,3 +130,4 @@ text(c(-8.75,-5.25),     24.7, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 ```
+
