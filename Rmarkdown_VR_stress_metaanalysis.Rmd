@@ -55,6 +55,7 @@ dat <-escalc(measure="SMCC", ni=cort_n2i, m1i=cort_m1i, m2i=cort_m2i, sd1i=cort_
 ############################### CORT FUNNEL PLOT, see https://wviechtb.github.io/metafor/reference/funnel.html#examples ################################
 ### random-effects model
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 ### show effect size values on x-axis ,label points outside of the pseudo confidence interval region
 funnel(res) # add ", atransf=exp" in the parentheses to log scale the x-axis
@@ -66,13 +67,29 @@ funnel(res) # add ", atransf=exp" in the parentheses to log scale the x-axis
 ############################## CORT FOREST PLOT, see https://wviechtb.github.io/metafor/reference/forest.rma.html#examples #########################
 forest(res,header=TRUE, cex=.8)
 forest(res,xlim=c(-20,10), 
-       ilab=cbind(cort_m2i, cort_sd2i, cort_m1i, cort_sd1i),
-       ilab.xpos=c(-9.5,-8,-6,-4.5), cex=.75,
-       header="Author(s) and Year")
+       ilab=cbind(cort_m2i, cort_sd2i, cort_m1i, cort_sd1i, cort_n2i),
+       ilab.xpos=c(-9.5,-8,-6,-4.5, -2.5), cex=.75,
+       header="Author(s) and Year",
+        mlab=" ")
+
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5), 6, c("M", "SD", "M", "SD")) #6 denotes the height,posy
+text(c(-9.5,-8,-6,-4.5, -2.5), 6, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
 text(c(-8.75,-5.25),     6.7, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
+addpoly(res2, row=-1.5, cex=0.75, mlab="")
+
+### add text with Q-value, dfs, p-value, and I^2 statistic
+text(-20, -0.8, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
+     .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
+     ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
+     .(formatC(res$I2, digits=1, format="f")), "%)")))
+text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
+     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
+     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
+     .(formatC(res2$I2, digits=1, format="f")), "%)")))
+
+
+
 ```
 
 ```{r, fig.width=10,fig.height=7}
