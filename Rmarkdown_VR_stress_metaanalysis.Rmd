@@ -92,7 +92,7 @@ text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
 
 ```
 
-```{r, fig.width=10,fig.height=7}
+```{r, fig.width=10,fig.height=5}
 
 #Calculate HR effect size
 HR_m2i=as.numeric(unlist(select(VR_study_sprdsht,c(26))))#baseline  #select the columns you want, then convert from list to numeric array
@@ -105,22 +105,37 @@ HR_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(35))))
 dat <-escalc(measure="SMCC", ni=HR_n1i, m1i=HR_m1i, m2i=HR_m2i, sd1i=HR_sd1i, sd2i=HR_sd2i, ri=rep.int(0.5, 27)) #SMCC= Standardized mean change 
 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 funnel(res)
 forest(res,header=TRUE, cex=.8)
 forest(res,xlim=c(-20,10), 
-       ilab=cbind(HR_m2i, HR_sd2i, HR_m1i, HR_sd1i),
-       ilab.xpos=c(-9.5,-8,-6,-4.5), cex=.75,
-       header="Author(s) and Year")
+       ilab=cbind(HR_m2i, HR_sd2i, HR_m1i, HR_sd1i, HR_n1i),
+       ilab.xpos=c(-9.5,-8,-6,-4.5, -2), cex=.75,
+       header="Author(s) and Year",
+       mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5), 24, c("M", "SD", "M", "SD")) #6 denotes the height,posy
+text(c(-9.5,-8,-6,-4.5,-2), 24, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
 text(c(-8.75,-5.25),     24.7, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
+
+#bottom labels
+addpoly(res2, row=-2, cex=0.75, mlab="")
+text(-20, -0.8, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
+     .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
+     ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
+     .(formatC(res$I2, digits=1, format="f")), "%)")))
+text(-20, -2, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
+     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
+     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
+     .(formatC(res2$I2, digits=1, format="f")), "%)")))
+
+
 
 ```
 
 
-```{r, fig.width=10,fig.height=7}
+```{r, fig.width=10,fig.height=5}
 
 #########SKIN CONDUCTANCE ####################
 #Calculate SC effect size
@@ -134,17 +149,29 @@ SC_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(95))))
 dat <-escalc(measure="SMCC", ni=SC_n1i, m1i=SC_m1i, m2i=SC_m2i, sd1i=SC_sd1i, sd2i=SC_sd2i, ri=rep.int(0.5, 27)) #SMCC= Standardized mean change 
 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 funnel(res)
 forest(res,header=TRUE, cex=.8)
 forest(res,xlim=c(-20,10), 
-       ilab=cbind(SC_m2i, SC_sd2i, SC_m1i, SC_sd1i),
-       ilab.xpos=c(-9.5,-8,-6,-4.5), cex=.75,
-       header="Author(s) and Year")
+       ilab=cbind(SC_m2i, SC_sd2i, SC_m1i, SC_sd1i, SC_n1i),
+       ilab.xpos=c(-9.5,-8,-6,-4.5, -2), cex=.75,
+       header="Author(s) and Year",
+       mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5), 24, c("M", "SD", "M", "SD")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     24.7, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2), 11.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     12.2, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
+#bottom labels
+addpoly(res2, row=-1.8, cex=0.75, mlab="")
+text(-20, -0.8, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
+     .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
+     ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
+     .(formatC(res$I2, digits=1, format="f")), "%)")))
+text(-20, -1.8, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
+     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
+     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
+     .(formatC(res2$I2, digits=1, format="f")), "%)")))
 ```
 
