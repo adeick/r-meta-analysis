@@ -66,15 +66,15 @@ funnel(res) # add ", atransf=exp" in the parentheses to log scale the x-axis
 
 ############################## CORT FOREST PLOT, see https://wviechtb.github.io/metafor/reference/forest.rma.html#examples #########################
 forest(res,header=TRUE, cex=.8)
-forest(res,xlim=c(-20,10), 
+forest(res,xlim=c(-20,7), 
        ilab=cbind(cort_m2i, cort_sd2i, cort_m1i, cort_sd1i, cort_n2i),
        ilab.xpos=c(-9.5,-8,-6,-4.5, -2.5), cex=.75,
        header="Author(s) and Year",
         mlab=" ")
 
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2.5), 6, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     6.7, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 5.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     6, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 addpoly(res2, row=-1.5, cex=0.75, mlab="")
 
@@ -109,13 +109,13 @@ res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, 
 
 funnel(res)
 forest(res,header=TRUE, cex=.8)
-forest(res,xlim=c(-20,10), 
+forest(res,xlim=c(-20,6), 
        ilab=cbind(HR_m2i, HR_sd2i, HR_m1i, HR_sd1i, HR_n1i),
-       ilab.xpos=c(-9.5,-8,-6,-4.5, -2), cex=.75,
+       ilab.xpos=c(-9.5,-8,-6,-4.5, -2.5), cex=.75,
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5,-2), 24, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-9.5,-8,-6,-4.5,-2.5), 23, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
 text(c(-8.75,-5.25),     24.7, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
@@ -153,13 +153,13 @@ res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, 
 
 funnel(res)
 forest(res,header=TRUE, cex=.8)
-forest(res,xlim=c(-20,10), 
+forest(res,xlim=c(-20,6), 
        ilab=cbind(SC_m2i, SC_sd2i, SC_m1i, SC_sd1i, SC_n1i),
-       ilab.xpos=c(-9.5,-8,-6,-4.5, -2), cex=.75,
+       ilab.xpos=c(-9.5,-8,-6,-4.5, -2.5), cex=.75,
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2), 11.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-9.5,-8,-6,-4.5, -2.5), 11.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
 text(c(-8.75,-5.25),     12.2, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
@@ -193,19 +193,19 @@ res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, 
 
 funnel(res)
 forest(res,header=TRUE, cex=.8)
-forest(res,xlim=c(-20,10), 
+forest(res,xlim=c(-20,6), 
        ilab=cbind(DBP_m2i, DBP_sd2i, DBP_m1i, DBP_sd1i, DBP_ni),
-       ilab.xpos=c(-9.5,-8,-6,-4.5, -2), cex=.75,
+       ilab.xpos=c(-9.5,-8,-6,-4.5, -2.5), cex=.75,
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2), 4.2, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     12.2, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 4.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     5, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
 addpoly(res2, row=-1.5, cex=0.75, mlab="")
-text(-20, -0.5, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
+text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
@@ -233,19 +233,19 @@ res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, 
 
 funnel(res)
 forest(res,header=TRUE, cex=.8)
-forest(res,xlim=c(-20,10), 
+forest(res,xlim=c(-20,6), 
        ilab=cbind(SBP_m2i, SBP_sd2i, SBP_m1i, SBP_sd1i, SBP_ni),
-       ilab.xpos=c(-9.5,-8,-6,-4.5, -2), cex=.75,
+       ilab.xpos=c(-9.5,-8,-6,-4.5, -2.5), cex=.75,
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2), 4.2, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     12.2, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 4.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     5, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
 addpoly(res2, row=-1.5, cex=0.75, mlab="")
-text(-20, -0.5, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
+text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
@@ -272,19 +272,19 @@ res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, 
 
 funnel(res)
 forest(res,header=TRUE, cex=.8)
-forest(res,xlim=c(-20,10), 
+forest(res,xlim=c(-20,6), 
        ilab=cbind(RSA_m2i, RSA_sd2i, RSA_m1i, RSA_sd1i, RSA_ni),
-       ilab.xpos=c(-9.5,-8,-6,-4.5, -2), cex=.75,
+       ilab.xpos=c(-9.5,-8,-6,-4.5, -2.5), cex=.75,
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2), 4.2, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     12.2, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 4.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     5, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
 addpoly(res2, row=-1.5, cex=0.75, mlab="")
-text(-20, -0.5, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
+text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
@@ -298,12 +298,12 @@ text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
 ```{r, fig.width=10,fig.height=5}
 
 ######### HRV LF/HF ####################
-#Calculate ??? effect size
-HRV_LF_HF_m2i=as.numeric(unlist(select(VR_study_sprdsht,c(41))))#baseline  #select the columns you want, then convert from list to numeric array
-HRV_LF_HF_m1i=as.numeric(unlist(select(VR_study_sprdsht,c(46)))) #peak #+5
-HRV_LF_HF_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(42)) ))  #+1
-HRV_LF_HF_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(47))))  #+6
-HRV_LF_HF_ni=as.numeric(unlist(select(VR_study_sprdsht,c(50))))  #+9
+#Calculate LF/HF ratio effect size
+HRV_LF_HF_m2i=as.numeric(unlist(select(VR_study_sprdsht,c(36))))#baseline  #select the columns you want, then convert from list to numeric array
+HRV_LF_HF_m1i=as.numeric(unlist(select(VR_study_sprdsht,c(41)))) #peak #+5
+HRV_LF_HF_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(37)) ))  #+1
+HRV_LF_HF_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(42))))  #+6
+HRV_LF_HF_ni=as.numeric(unlist(select(VR_study_sprdsht,c(45))))  #+9
 
 dat <-escalc(measure="SMCC", ni=HRV_LF_HF_ni, m1i=HRV_LF_HF_m1i, m2i=HRV_LF_HF_m2i, sd1i=HRV_LF_HF_sd1i, sd2i=HRV_LF_HF_sd2i, ri=rep.int(0.5, 27)) #SMCC= Standardized mean change 
 
@@ -312,19 +312,19 @@ res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, 
 
 funnel(res)
 forest(res,header=TRUE, cex=.8)
-forest(res,xlim=c(-20,10), 
+forest(res,xlim=c(-20,6), 
        ilab=cbind(HRV_LF_HF_m2i, HRV_LF_HF_sd2i, HRV_LF_HF_m1i, HRV_LF_HF_sd1i, HRV_LF_HF_ni),
-       ilab.xpos=c(-9.5,-8,-6,-4.5, -2), cex=.75,
+       ilab.xpos=c(-9.5,-8,-6,-4.5, -2.5), cex=.75,
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2), 4.2, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     12.2, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 5.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     6, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
 addpoly(res2, row=-1.5, cex=0.75, mlab="")
-text(-20, -0.5, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
+text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
@@ -351,19 +351,19 @@ res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, 
 
 funnel(res)
 forest(res,header=TRUE, cex=.8)
-forest(res,xlim=c(-20,10), 
+forest(res,xlim=c(-20,6), 
        ilab=cbind(HRV_RMSSD_m2i, HRV_RMSSD_sd2i, HRV_RMSSD_m1i, HRV_RMSSD_sd1i, HRV_RMSSD_ni),
-       ilab.xpos=c(-9.5,-8,-6,-4.5, -2), cex=.75,
+       ilab.xpos=c(-9.5,-8,-6,-4.5, -2.5), cex=.75,
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2), 5.2, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     12.2, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 5.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     6, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
 addpoly(res2, row=-1.5, cex=0.75, mlab="")
-text(-20, -0.5, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
+text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
@@ -390,19 +390,19 @@ res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, 
 
 funnel(res)
 forest(res,header=TRUE, cex=.8)
-forest(res,xlim=c(-20,10), 
+forest(res,xlim=c(-20,6), 
        ilab=cbind(AA_m2i, AA_sd2i, AA_m1i, AA_sd1i, AA_ni),
-       ilab.xpos=c(-9.5,-8,-6,-4.5, -2), cex=.75,
+       ilab.xpos=c(-9.5,-8,-6,-4.5, -2.5), cex=.75,
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2), 2.2, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     12.2, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 2.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     3, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
 addpoly(res2, row=-1.5, cex=0.75, mlab="")
-text(-20, -0.5, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
+text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
