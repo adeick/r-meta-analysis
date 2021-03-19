@@ -27,7 +27,7 @@ library(dplyr)
 ```{r}
 #read the google spreadsheet
 gs4_deauth()
-VR_study_sprdsht <- read_sheet("https://docs.google.com/spreadsheets/d/113KZYiODuhNoohl2VNSJcs1sUsDmpp_5mnv5egAPHW4/edit?usp=sharing", range = "Outcomes - Consensus!A2:CU29")
+VR_study_sprdsht <- read_sheet("https://docs.google.com/spreadsheets/d/113KZYiODuhNoohl2VNSJcs1sUsDmpp_5mnv5egAPHW4/edit?usp=sharing", range = "Outcomes - Consensus!A2:CU37")
 
 ```
 
@@ -37,7 +37,7 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r}
+```{r, fig.width=10,fig.height=4} 
 
 #Calculate cort effect size
 cort_m2i=as.numeric(unlist(select(VR_study_sprdsht,c(6))))#baseline  #select the columns you want, then convert from list to numeric array
@@ -47,7 +47,7 @@ cort_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(12))))
 cort_n2i=as.numeric(unlist(select(VR_study_sprdsht,c(10))))
 cort_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(15))))
 
-dat <-escalc(measure="SMCC", ni=cort_n2i, m1i=cort_m1i, m2i=cort_m2i, sd1i=cort_sd1i, sd2i=cort_sd2i, ri=rep.int(0.5, 27)) #SMCC= Standardized mean change 
+dat <-escalc(measure="SMCC", ni=cort_n2i, m1i=cort_m1i, m2i=cort_m2i, sd1i=cort_sd1i, sd2i=cort_sd2i, ri=rep.int(0.5, 35)) #SMCC= Standardized mean change 
 #NOTE: yi=vector to specify the observed effects or outcomes, vi=vector to specify the corresponding sampling variances.
 #NOte: Is your meta-analysis testing differences across alternate treatments or experimental conditions? If so, the raw score standardization (SMCR) is preferable. If your meta-analysis is primarily concerned with changes in individuals, the change score standardization (SMCC) is better.
 
@@ -59,9 +59,9 @@ res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, 
 
 ### show effect size values on x-axis ,label points outside of the pseudo confidence interval region
 funnel(res) # add ", atransf=exp" in the parentheses to log scale the x-axis
-```
 
-```{r, fig.width=10,fig.height=4} 
+
+
 #NOTE:widen plotting device to avoid overlapping text
 
 ############################## CORT FOREST PLOT, see https://wviechtb.github.io/metafor/reference/forest.rma.html#examples #########################
@@ -73,17 +73,17 @@ forest(res,xlim=c(-20,7),
         mlab=" ")
 
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2.5), 5.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     6, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 13, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     14, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
-addpoly(res2, row=-1.5, cex=0.75, mlab="")
+addpoly(res2, row=-1.7, cex=0.75, mlab="")
 
 ### add text with Q-value, dfs, p-value, and I^2 statistic
 text(-20, -0.8, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
-text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
+text(-20, -1.7, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
      .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
      ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res2$I2, digits=1, format="f")), "%)")))
@@ -92,7 +92,7 @@ text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
 
 ```
 
-```{r, fig.width=10,fig.height=5}
+```{r, fig.width=10,fig.height=7}
 
 #Calculate HR effect size
 HR_m2i=as.numeric(unlist(select(VR_study_sprdsht,c(26))))#baseline  #select the columns you want, then convert from list to numeric array
@@ -102,7 +102,7 @@ HR_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(32))))
 HR_n2i=as.numeric(unlist(select(VR_study_sprdsht,c(30))))
 HR_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(35))))
 
-dat <-escalc(measure="SMCC", ni=HR_n1i, m1i=HR_m1i, m2i=HR_m2i, sd1i=HR_sd1i, sd2i=HR_sd2i, ri=rep.int(0.5, 27)) #SMCC= Standardized mean change 
+dat <-escalc(measure="SMCC", ni=HR_n1i, m1i=HR_m1i, m2i=HR_m2i, sd1i=HR_sd1i, sd2i=HR_sd2i, ri=rep.int(0.5, 35)) #SMCC= Standardized mean change 
 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
@@ -115,8 +115,8 @@ forest(res,xlim=c(-20,6),
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5,-2.5), 23, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     24.7, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5,-2.5), 32, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     33, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
@@ -135,7 +135,7 @@ text(-20, -2, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
 ```
 
 
-```{r, fig.width=10,fig.height=5}
+```{r, fig.width=10,fig.height=4}
 
 #########SKIN CONDUCTANCE ####################
 #Calculate SC effect size
@@ -146,7 +146,7 @@ SC_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(92))))
 SC_n2i=as.numeric(unlist(select(VR_study_sprdsht,c(90)))) 
 SC_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(95)))) 
 
-dat <-escalc(measure="SMCC", ni=SC_n1i, m1i=SC_m1i, m2i=SC_m2i, sd1i=SC_sd1i, sd2i=SC_sd2i, ri=rep.int(0.5, 27)) #SMCC= Standardized mean change 
+dat <-escalc(measure="SMCC", ni=SC_n1i, m1i=SC_m1i, m2i=SC_m2i, sd1i=SC_sd1i, sd2i=SC_sd2i, ri=rep.int(0.5, 35)) #SMCC= Standardized mean change 
 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
@@ -159,8 +159,8 @@ forest(res,xlim=c(-20,6),
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2.5), 11.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     12.2, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 9, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     9.6, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
@@ -169,14 +169,14 @@ text(-20, -0.8, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
-text(-20, -1.8, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
+text(-20, -1.6, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
      .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
      ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res2$I2, digits=1, format="f")), "%)")))
 ```
 
 
-```{r, fig.width=10,fig.height=5}
+```{r, fig.width=10,fig.height=4}
 
 #########Diastolic Blood Pressure ####################
 #Calculate DBP effect size
@@ -186,7 +186,7 @@ DBP_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(67)) ))
 DBP_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(72)))) 
 DBP_ni=as.numeric(unlist(select(VR_study_sprdsht,c(75)))) 
 
-dat <-escalc(measure="SMCC", ni=DBP_ni, m1i=DBP_m1i, m2i=DBP_m2i, sd1i=DBP_sd1i, sd2i=DBP_sd2i, ri=rep.int(0.5, 27)) #SMCC= Standardized mean change 
+dat <-escalc(measure="SMCC", ni=DBP_ni, m1i=DBP_m1i, m2i=DBP_m2i, sd1i=DBP_sd1i, sd2i=DBP_sd2i, ri=rep.int(0.5, 35)) #SMCC= Standardized mean change 
 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
@@ -199,8 +199,8 @@ forest(res,xlim=c(-20,6),
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2.5), 4.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     5, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 5.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     6, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
@@ -216,7 +216,7 @@ text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
 ```
 
 
-```{r, fig.width=10,fig.height=5}
+```{r, fig.width=10,fig.height=4}
 
 ######### Systolic Blood Pressure ####################
 #Calculate SBP effect size
@@ -226,7 +226,7 @@ SBP_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(77)) ))  #+1
 SBP_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(82))))  #+6
 SBP_ni=as.numeric(unlist(select(VR_study_sprdsht,c(85))))  #+9
 
-dat <-escalc(measure="SMCC", ni=SBP_ni, m1i=SBP_m1i, m2i=SBP_m2i, sd1i=SBP_sd1i, sd2i=SBP_sd2i, ri=rep.int(0.5, 27)) #SMCC= Standardized mean change 
+dat <-escalc(measure="SMCC", ni=SBP_ni, m1i=SBP_m1i, m2i=SBP_m2i, sd1i=SBP_sd1i, sd2i=SBP_sd2i, ri=rep.int(0.5, 35)) #SMCC= Standardized mean change 
 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
@@ -239,8 +239,8 @@ forest(res,xlim=c(-20,6),
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2.5), 4.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     5, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 5.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     6, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
@@ -255,7 +255,7 @@ text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
      .(formatC(res2$I2, digits=1, format="f")), "%)")))
 ```
 
-```{r, fig.width=10,fig.height=5}
+```{r, fig.width=10,fig.height=3}
 
 ######### RSA ####################
 #Calculate RSA effect size
@@ -265,7 +265,7 @@ RSA_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(57)) ))  #+1
 RSA_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(62))))  #+6
 RSA_ni=as.numeric(unlist(select(VR_study_sprdsht,c(65))))  #+9
 
-dat <-escalc(measure="SMCC", ni=RSA_ni, m1i=RSA_m1i, m2i=RSA_m2i, sd1i=RSA_sd1i, sd2i=RSA_sd2i, ri=rep.int(0.5, 27)) #SMCC= Standardized mean change 
+dat <-escalc(measure="SMCC", ni=RSA_ni, m1i=RSA_m1i, m2i=RSA_m2i, sd1i=RSA_sd1i, sd2i=RSA_sd2i, ri=rep.int(0.5, 35)) #SMCC= Standardized mean change 
 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
@@ -283,19 +283,19 @@ text(c(-8.75,-5.25),     5, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
-addpoly(res2, row=-1.5, cex=0.75, mlab="")
+addpoly(res2, row=-1.6, cex=0.75, mlab="")
 text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
-text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
+text(-20, -1.6, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
      .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
      ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res2$I2, digits=1, format="f")), "%)")))
 ```
 
 
-```{r, fig.width=10,fig.height=5}
+```{r, fig.width=10,fig.height=3.5}
 
 ######### HRV LF/HF ####################
 #Calculate LF/HF ratio effect size
@@ -305,7 +305,7 @@ HRV_LF_HF_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(37)) ))  #+1
 HRV_LF_HF_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(42))))  #+6
 HRV_LF_HF_ni=as.numeric(unlist(select(VR_study_sprdsht,c(45))))  #+9
 
-dat <-escalc(measure="SMCC", ni=HRV_LF_HF_ni, m1i=HRV_LF_HF_m1i, m2i=HRV_LF_HF_m2i, sd1i=HRV_LF_HF_sd1i, sd2i=HRV_LF_HF_sd2i, ri=rep.int(0.5, 27)) #SMCC= Standardized mean change 
+dat <-escalc(measure="SMCC", ni=HRV_LF_HF_ni, m1i=HRV_LF_HF_m1i, m2i=HRV_LF_HF_m2i, sd1i=HRV_LF_HF_sd1i, sd2i=HRV_LF_HF_sd2i, ri=rep.int(0.5, 35)) #SMCC= Standardized mean change 
 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
@@ -334,7 +334,7 @@ text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
      .(formatC(res2$I2, digits=1, format="f")), "%)")))
 ```
 
-```{r, fig.width=10,fig.height=5}
+```{r, fig.width=10,fig.height=4}
 
 ######### HRV RMSSD ####################
 #Calculate RMSSD effect size
@@ -344,7 +344,7 @@ HRV_RMSSD_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(47)) ))  #+1
 HRV_RMSSD_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(52))))  #+6
 HRV_RMSSD_ni=as.numeric(unlist(select(VR_study_sprdsht,c(55))))  #+9
 
-dat <-escalc(measure="SMCC", ni=HRV_RMSSD_ni, m1i=HRV_RMSSD_m1i, m2i=HRV_RMSSD_m2i, sd1i=HRV_RMSSD_sd1i, sd2i=HRV_RMSSD_sd2i, ri=rep.int(0.5, 27)) #SMCC= Standardized mean change 
+dat <-escalc(measure="SMCC", ni=HRV_RMSSD_ni, m1i=HRV_RMSSD_m1i, m2i=HRV_RMSSD_m2i, sd1i=HRV_RMSSD_sd1i, sd2i=HRV_RMSSD_sd2i, ri=rep.int(0.5, 35)) #SMCC= Standardized mean change 
 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
@@ -353,12 +353,12 @@ funnel(res)
 forest(res,header=TRUE, cex=.8)
 forest(res,xlim=c(-20,6), 
        ilab=cbind(HRV_RMSSD_m2i, HRV_RMSSD_sd2i, HRV_RMSSD_m1i, HRV_RMSSD_sd1i, HRV_RMSSD_ni),
-       ilab.xpos=c(-9.5,-8,-6,-4.5, -2.5), cex=.75,
+       ilab.xpos=c(-12.5,-11,-9,-7.5, -5.5), cex=.75,
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2.5), 5.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     6, c("Baseline", "Peak"))
+text(c(-12.5,-11,-9,-7.5, -5.5), 6.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-11.75,-8.25),     7, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
@@ -373,7 +373,7 @@ text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
      .(formatC(res2$I2, digits=1, format="f")), "%)")))
 ```
 
-```{r, fig.width=10,fig.height=5}
+```{r, fig.width=10,fig.height=3.5}
 
 ######### Alpha Amylase ####################
 #Calculate Alpha Amylase effect size
@@ -383,7 +383,7 @@ AA_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(17)) ))  #+1
 AA_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(22))))  #+6
 AA_ni=as.numeric(unlist(select(VR_study_sprdsht,c(25))))  #+9
 
-dat <-escalc(measure="SMCC", ni=AA_ni, m1i=AA_m1i, m2i=AA_m2i, sd1i=AA_sd1i, sd2i=AA_sd2i, ri=rep.int(0.5, 27)) #SMCC= Standardized mean change 
+dat <-escalc(measure="SMCC", ni=AA_ni, m1i=AA_m1i, m2i=AA_m2i, sd1i=AA_sd1i, sd2i=AA_sd2i, ri=rep.int(0.5, 35)) #SMCC= Standardized mean change 
 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
@@ -396,8 +396,8 @@ forest(res,xlim=c(-20,6),
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2.5), 2.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     3, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     5.5, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
