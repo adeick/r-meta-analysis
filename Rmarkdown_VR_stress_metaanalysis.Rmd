@@ -13,10 +13,11 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 #NOTE: you will need to install these packages when you run it the first time.
-#install.packages("metafor")
-#install.packages("googlesheets4")
-#install.packages("ggplot2")
-#install.packages("dplyr")
+install.packages("metafor")
+install.packages("googlesheets4")
+install.packages("ggplot2")
+install.packages("dplyr")
+install.packages("plyr")
 library(googlesheets4)
 library(metafor) # see https://wviechtb.github.io/metafor/ for documentataion and function descriptions
 library(ggplot2)
