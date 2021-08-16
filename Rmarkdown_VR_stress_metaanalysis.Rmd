@@ -30,7 +30,7 @@ library(greekLetters)
 ```{r}
 #read the google spreadsheet
 gs4_deauth()
-VR_study_sprdsht <- read_sheet("https://docs.google.com/spreadsheets/d/113KZYiODuhNoohl2VNSJcs1sUsDmpp_5mnv5egAPHW4/edit?usp=sharing", range = "Outcomes - Consensus!A2:DA44")
+VR_study_sprdsht <- read_sheet("https://docs.google.com/spreadsheets/d/113KZYiODuhNoohl2VNSJcs1sUsDmpp_5mnv5egAPHW4/edit?usp=sharing", range = "Outcomes - Consensus!A2:DB44")
 numrows=nrow(VR_study_sprdsht)
 ```
 
@@ -59,12 +59,13 @@ dat <-escalc(measure="SMCC", ni=cort_n2i, m1i=cort_m1i, m2i=cort_m2i, sd1i=cort_
 #### CORT FUNNEL PLOT, see https://wviechtb.github.io/metafor/reference/funnel.html#examples ####
 ### random-effects model
 res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
-res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+res <- rma(yi, vi, data=dat,  slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 ### show effect size values on x-axis ,label points outside of the pseudo confidence interval region
 #mu=symbol("mu");
 mes=paste("Standardized Mean Change in Cortisol (",greek$mu,"g/dl)")
-funnel(res, xlab=mes) # add ", atransf=exp" in the parentheses to log scale the x-axis
+taf <- trimfill(res) #trim-and-fill analysis
+funnel(taf, xlab=mes, legend=TRUE) # add ", atransf=exp" in the parentheses to log scale the x-axis
 ```
 
 ```{r, fig.width=10,fig.height=4} 
@@ -94,8 +95,10 @@ text(-20, -1.7, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
      ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res2$I2, digits=1, format="f")), "%)")))
 
-
-
+#trim-and-fill anlaysis
+res
+taf
+fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 ```{r}
 #### CORT MODERATORS ###
@@ -163,8 +166,32 @@ res_mod_Year_pub
 regplot(res_mod_Year_pub, mod="Year_pub", xlab="Year of Publication",
          refline=1, legend=TRUE, main="SMC of Cort versus Year of Publication",)
 
+#Baseline Traditional vs During Video/VR
+VR_baseline=as.factor(unlist(select(VR_study_sprdsht,c(104))))
+res_mod_VR_baseline <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_baseline) #doesnt matter if weighted or not. Same results.
+res_mod_VR_baseline
+#QM is  if the moderator level is significantly different, between-group main effect 2xgroup(male, male+female & females)
+#QE is the homogeneity test that calculated for variability within each group
+#according to Helminen, 2019 QM=QB, QE=QW)
+
+preds <- predict(res_mod_VR_baseline, newmods = cbind(0:60))
+wi <- 1/sqrt(dat$vi)
+size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
+plot(VR_baseline, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change in Cort", xaxt="n", bty = "l", main="SMC of Cort versus baseline setting")
+axis(side=1, at=1:2, labels=c("Traditional","VR/video"))
+
+#Stress Anchors
+Stress_anchor=as.numeric(unlist(select(VR_study_sprdsht,c(106))))
+res_mod_Stress_anchor <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ Stress_anchor)
+res_mod_Stress_anchor
+
+regplot(res_mod_Stress_anchor, mod="Stress_anchor", xlab="Subjective Stress",
+         refline=1, legend=TRUE, main="SMC of Cort versus Subjective Stress of VR Simulation",)
+
 
 ```
+
+
 
 ```{r, fig.width=6,fig.height=4}
 ######################## HEART RATE #######################################
@@ -182,7 +209,8 @@ dat <-escalc(measure="SMCC", ni=HR_n1i, m1i=HR_m1i, m2i=HR_m2i, sd1i=HR_sd1i, sd
 res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
-funnel(res, xlab="Standardized Mean Change in Heart Rate (BPM)")
+taf <- trimfill(res) #trim-and-fill analysis, I^2 >70%
+funnel(taf, xlab="Standardized Mean Change in Heart Rate (BPM)", legend=TRUE)
 ```
 
 ```{r, fig.width=10,fig.height=7}
@@ -208,9 +236,12 @@ text(-20, -2, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
      ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res2$I2, digits=1, format="f")), "%)")))
 
-
+res
+taf
+fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 
 ```
+
 ```{r}
 #### HR MODERATORS ###
 
@@ -267,6 +298,28 @@ res_mod_Year_pub
 regplot(res_mod_Year_pub, mod="Year_pub", xlab="Year of Publication",
          refline=1, legend=TRUE, main="SMC of Heart Rate versus Year of Publication",)
 
+#Baseline Traditional vs During Video/VR
+VR_baseline=as.factor(unlist(select(VR_study_sprdsht,c(104))))
+res_mod_VR_baseline <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_baseline) #doesnt matter if weighted or not. Same results.
+res_mod_VR_baseline
+#QM is  if the moderator level is significantly different, between-group main effect 2xgroup(male, male+female & females)
+#QE is the homogeneity test that calculated for variability within each group
+#according to Helminen, 2019 QM=QB, QE=QW)
+
+preds <- predict(res_mod_VR_baseline, newmods = cbind(0:60))
+wi <- 1/sqrt(dat$vi)
+size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
+plot(VR_baseline, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change in HR", xaxt="n", bty = "l", main="SMC of HR versus baseline setting")
+axis(side=1, at=1:2, labels=c("Traditional","VR/video"))
+
+#Stress Anchors
+Stress_anchor=as.numeric(unlist(select(VR_study_sprdsht,c(106))))
+res_mod_Stress_anchor <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ Stress_anchor)
+res_mod_Stress_anchor
+
+regplot(res_mod_Stress_anchor, mod="Stress_anchor", xlab="Subjective Stress",
+         refline=1, legend=TRUE, main="SMC of HR versus Subjective Stress of VR Simulation",)
+
 ```
 
 ```{r, fig.width=6,fig.height=4}
@@ -285,8 +338,9 @@ dat <-escalc(measure="SMCC", ni=SC_n1i, m1i=SC_m1i, m2i=SC_m2i, sd1i=SC_sd1i, sd
 
 res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
-mes=paste("Standardized Mean Change in EDA (", greek$mu,"S)")
-funnel(res, xlab=mes)
+mes=paste("Standardized Mean Change in GSR (", greek$mu,"S)")
+#taf <- trimfill(res) #trim-and-fill analysis
+funnel(res, xlab=mes, legend=TRUE)
 ```
 
 ```{r, fig.width=10,fig.height=4}
@@ -311,6 +365,8 @@ text(-20, -1.6, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
      .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
      ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res2$I2, digits=1, format="f")), "%)")))
+res
+fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 ```{r}
 #### EDA MODERATORS ###
@@ -356,31 +412,57 @@ res_mod_Year_pub
 regplot(res_mod_Year_pub, mod="Year_pub", xlab="Year of Publication",
          refline=1, legend=TRUE, main="SMC of EDA versus Year of Publication",)
 
+#Baseline Traditional vs During Video/VR
+VR_baseline=as.factor(unlist(select(VR_study_sprdsht,c(104))))
+res_mod_VR_baseline <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_baseline) #doesnt matter if weighted or not. Same results.
+res_mod_VR_baseline
+#QM is  if the moderator level is significantly different, between-group main effect 2xgroup(male, male+female & females)
+#QE is the homogeneity test that calculated for variability within each group
+#according to Helminen, 2019 QM=QB, QE=QW)
+
+preds <- predict(res_mod_VR_baseline, newmods = cbind(0:60))
+wi <- 1/sqrt(dat$vi)
+size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
+plot(VR_baseline, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change in EDA", xaxt="n", bty = "l", main="SMC of EDA versus baseline setting")
+axis(side=1, at=1:2, labels=c("Traditional","VR/video"))
+
+#Stress Anchors
+Stress_anchor=as.numeric(unlist(select(VR_study_sprdsht,c(106))))
+res_mod_Stress_anchor <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ Stress_anchor)
+res_mod_Stress_anchor
+
+regplot(res_mod_Stress_anchor, mod="Stress_anchor", xlab="Subjective Stress",
+         refline=1, legend=TRUE, main="SMC of EDA versus Subjective Stress of VR Simulation",)
+
+
 ```
+
+
 
 ```{r, fig.width=6,fig.height=4}
 
-#########Diastolic Blood Pressure ####################
-#Calculate DBP effect size
-DBP_m2i=as.numeric(unlist(select(VR_study_sprdsht,c(66))))#baseline  #select the columns you want, then convert from list to numeric array
-DBP_m1i=as.numeric(unlist(select(VR_study_sprdsht,c(71)))) #peak 
-DBP_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(67)) )) 
-DBP_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(72)))) 
-DBP_ni=as.numeric(unlist(select(VR_study_sprdsht,c(75)))) 
+######### Systolic Blood Pressure ####################
+#Calculate SBP effect size
+SBP_m2i=as.numeric(unlist(select(VR_study_sprdsht,c(76))))#baseline  #select the columns you want, then convert from list to numeric array
+SBP_m1i=as.numeric(unlist(select(VR_study_sprdsht,c(81)))) #peak #+5
+SBP_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(77)) ))  #+1
+SBP_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(82))))  #+6
+SBP_ni=as.numeric(unlist(select(VR_study_sprdsht,c(85))))  #+9
 
-dat <-escalc(measure="SMCC", ni=DBP_ni, m1i=DBP_m1i, m2i=DBP_m2i, sd1i=DBP_sd1i, sd2i=DBP_sd2i, ri=rep.int(0.5, numrows)) #SMCC= Standardized mean change 
+dat <-escalc(measure="SMCC", ni=SBP_ni, m1i=SBP_m1i, m2i=SBP_m2i, sd1i=SBP_sd1i, sd2i=SBP_sd2i, ri=rep.int(0.5, numrows)) #SMCC= Standardized mean change 
 
 res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in SBP (mmHg)")
-funnel(res, xlab=mes)
+taf <- trimfill(res) #trim-and-fill analysis
+funnel(res, xlab=mes,legend=TRUE)
 ```
 
 ```{r, fig.width=10,fig.height=4}
 #forest(res,header=TRUE, cex=.8)
 forest(res,xlim=c(-20,6), 
-       ilab=cbind(DBP_m2i, DBP_sd2i, DBP_m1i, DBP_sd1i, DBP_ni),
+       ilab=cbind(SBP_m2i, SBP_sd2i, SBP_m1i, SBP_sd1i, SBP_ni),
        ilab.xpos=c(-9.5,-8,-6,-4.5, -2.5), cex=.75,
        header="Author(s) and Year",
        mlab=" ")
@@ -399,6 +481,12 @@ text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
      .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
      ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res2$I2, digits=1, format="f")), "%)")))
+res
+res2
+taf
+taf2 <- trimfill(res2) #trim-and-fill analysis on FE
+taf2
+fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 ```{r}
 #### SBP MODERATORS ###
@@ -431,7 +519,7 @@ res_mod_male_dum
 preds <- predict(res_mod_male_dum, newmods = cbind(0:60))
 wi <- 1/sqrt(dat$vi)
 size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
-plot(sex_male_dum, dat$yi, type="o", pch = 19, xlab = "Group Sex Composition", ylab = "Change in SBP", xaxt="n", bty = "l", main="SMC of SBP versus Group Sex Composition")
+plot(sex_male_dum, dat$yi, type="o", pch = 19, xlab = "Group Sex Composition", ylab = "Change in SBP", xaxt="n", bty = "l", main="SMC of DBP versus Group Sex Composition")
 axis(side=1, at=1:2, labels=c("all male","male+female, or all female"))
 
 #Headset vs, CAVE
@@ -445,7 +533,7 @@ res_mod_VR_medium
 preds <- predict(res_mod_VR_medium, newmods = cbind(0:60))
 wi <- 1/sqrt(dat$vi)
 size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
-plot(VR_medium, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change in SBP", xaxt="n", bty = "l", main="SMC of SBP versus VR medium")
+plot(VR_medium, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change in SBP", xaxt="n", bty = "l", main="SMC of DBP versus VR medium")
 axis(side=1, at=1:2, labels=c("HMD","CAVE"))
 
 #Year of publication
@@ -456,31 +544,55 @@ res_mod_Year_pub
 regplot(res_mod_Year_pub, mod="Year_pub", xlab="Year of Publication",
          refline=1, legend=TRUE, main="SMC of SBP versus Year of Publication",)
 
-```
 
+#Baseline Traditional vs During Video/VR
+VR_baseline=as.factor(unlist(select(VR_study_sprdsht,c(104))))
+res_mod_VR_baseline <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_baseline) #doesnt matter if weighted or not. Same results.
+res_mod_VR_baseline
+#QM is  if the moderator level is significantly different, between-group main effect 2xgroup(male, male+female & females)
+#QE is the homogeneity test that calculated for variability within each group
+#according to Helminen, 2019 QM=QB, QE=QW)
+
+preds <- predict(res_mod_VR_baseline, newmods = cbind(0:60))
+wi <- 1/sqrt(dat$vi)
+size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
+plot(VR_baseline, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change in SBP", xaxt="n", bty = "l", main="SMC of SBP versus baseline setting")
+axis(side=1, at=1:2, labels=c("Traditional","VR/video"))
+
+#Stress Anchors
+Stress_anchor=as.numeric(unlist(select(VR_study_sprdsht,c(106))))
+res_mod_Stress_anchor <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ Stress_anchor)
+res_mod_Stress_anchor
+
+regplot(res_mod_Stress_anchor, mod="Stress_anchor", xlab="Subjective Stress",
+         refline=1, legend=TRUE, main="SMC of SBP versus Subjective Stress of VR Simulation",)
+
+
+```
 ```{r, fig.width=6,fig.height=4}
 
-######### Systolic Blood Pressure ####################
-#Calculate SBP effect size
-SBP_m2i=as.numeric(unlist(select(VR_study_sprdsht,c(76))))#baseline  #select the columns you want, then convert from list to numeric array
-SBP_m1i=as.numeric(unlist(select(VR_study_sprdsht,c(81)))) #peak #+5
-SBP_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(77)) ))  #+1
-SBP_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(82))))  #+6
-SBP_ni=as.numeric(unlist(select(VR_study_sprdsht,c(85))))  #+9
+#########Diastolic Blood Pressure ####################
+#Calculate DBP effect size
+DBP_m2i=as.numeric(unlist(select(VR_study_sprdsht,c(66))))#baseline  #select the columns you want, then convert from list to numeric array
+DBP_m1i=as.numeric(unlist(select(VR_study_sprdsht,c(71)))) #peak 
+DBP_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(67)) )) 
+DBP_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(72)))) 
+DBP_ni=as.numeric(unlist(select(VR_study_sprdsht,c(75)))) 
 
-dat <-escalc(measure="SMCC", ni=SBP_ni, m1i=SBP_m1i, m2i=SBP_m2i, sd1i=SBP_sd1i, sd2i=SBP_sd2i, ri=rep.int(0.5, numrows)) #SMCC= Standardized mean change 
+dat <-escalc(measure="SMCC", ni=DBP_ni, m1i=DBP_m1i, m2i=DBP_m2i, sd1i=DBP_sd1i, sd2i=DBP_sd2i, ri=rep.int(0.5, numrows)) #SMCC= Standardized mean change 
 
 res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in DBP (mmHg)")
-funnel(res, xlab=mes)
+taf <- trimfill(res) #trim-and-fill analysis
+funnel(res, xlab=mes, legend=TRUE)
 ```
 
 ```{r, fig.width=10,fig.height=4}
 #forest(res,header=TRUE, cex=.8)
 forest(res,xlim=c(-20,6), 
-       ilab=cbind(SBP_m2i, SBP_sd2i, SBP_m1i, SBP_sd1i, SBP_ni),
+       ilab=cbind(DBP_m2i, DBP_sd2i, DBP_m1i, DBP_sd1i, DBP_ni),
        ilab.xpos=c(-9.5,-8,-6,-4.5, -2.5), cex=.75,
        header="Author(s) and Year",
        mlab=" ")
@@ -499,6 +611,12 @@ text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
      .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
      ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res2$I2, digits=1, format="f")), "%)")))
+res
+res2
+taf
+taf2 <- trimfill(res2) #trim-and-fill analysis
+taf2
+fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 ```{r}
 #### DBP MODERATORS ###
@@ -545,7 +663,7 @@ res_mod_VR_medium
 preds <- predict(res_mod_VR_medium, newmods = cbind(0:60))
 wi <- 1/sqrt(dat$vi)
 size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
-plot(VR_medium, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change in DBP", xaxt="n", bty = "l", main="SMC of DBP versus VR medium")
+plot(VR_medium, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change in DBP", xaxt="n", bty = "l", main="SMC of SBP versus VR medium")
 axis(side=1, at=1:2, labels=c("HMD","CAVE"))
 
 #Year of publication
@@ -555,6 +673,28 @@ res_mod_Year_pub
 
 regplot(res_mod_Year_pub, mod="Year_pub", xlab="Year of Publication",
          refline=1, legend=TRUE, main="SMC of DBP versus Year of Publication",)
+
+#Baseline Traditional vs During Video/VR
+VR_baseline=as.factor(unlist(select(VR_study_sprdsht,c(104))))
+res_mod_VR_baseline <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_baseline) #doesnt matter if weighted or not. Same results.
+res_mod_VR_baseline
+#QM is  if the moderator level is significantly different, between-group main effect 2xgroup(male, male+female & females)
+#QE is the homogeneity test that calculated for variability within each group
+#according to Helminen, 2019 QM=QB, QE=QW)
+
+preds <- predict(res_mod_VR_baseline, newmods = cbind(0:60))
+wi <- 1/sqrt(dat$vi)
+size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
+plot(VR_baseline, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change in DBP", xaxt="n", bty = "l", main="SMC of DBP versus baseline setting")
+axis(side=1, at=1:2, labels=c("Traditional","VR/video"))
+
+#Stress Anchors
+Stress_anchor=as.numeric(unlist(select(VR_study_sprdsht,c(106))))
+res_mod_Stress_anchor <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ Stress_anchor)
+res_mod_Stress_anchor
+
+regplot(res_mod_Stress_anchor, mod="Stress_anchor", xlab="Subjective Stress",
+         refline=1, legend=TRUE, main="SMC of DBP versus Subjective Stress of VR Simulation",)
 
 ```
 ```{r, fig.width=6,fig.height=4}
@@ -573,7 +713,8 @@ res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in RSA (ms)")
-funnel(res, xlab=mes)
+#taf <- trimfill(res) #trim-and-fill analysis
+funnel(res, xlab=mes, legend=TRUE)
 ```
 
 ```{r, fig.width=10,fig.height=3}
@@ -598,6 +739,8 @@ text(-20, -1.6, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
      .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
      ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res2$I2, digits=1, format="f")), "%)")))
+res
+fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 
 ```{r}
@@ -645,6 +788,20 @@ res_mod_Year_pub
 regplot(res_mod_Year_pub, mod="Year_pub", xlab="Year of Publication",
          refline=1, legend=TRUE, main="SMC of RSA versus Year of Publication",)
 
+#Baseline Traditional vs During Video/VR
+VR_baseline=as.factor(unlist(select(VR_study_sprdsht,c(104))))
+res_mod_VR_baseline <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_baseline) #doesnt matter if weighted or not. Same results.
+res_mod_VR_baseline
+# NOTE: NO STUDIES USING VR/Video baseline measured RSA, SO THIS ANALYSIS CANNOT BE PREFORMED
+
+#Stress Anchors
+Stress_anchor=as.numeric(unlist(select(VR_study_sprdsht,c(106))))
+res_mod_Stress_anchor <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ Stress_anchor)
+res_mod_Stress_anchor
+
+regplot(res_mod_Stress_anchor, mod="Stress_anchor", xlab="Subjective Stress",
+         refline=1, legend=TRUE, main="SMC of RSA versus Subjective Stress of VR Simulation",)
+
 ```
 ```{r, fig.width=6,fig.height=4}
 
@@ -662,7 +819,8 @@ res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in LF/HF (ms)")
-funnel(res, xlab=mes)
+#taf <- trimfill(res) #trim-and-fill analysis
+funnel(res, xlab=mes, legend=TRUE)
 ```
 
 ```{r, fig.width=10,fig.height=3.5}
@@ -687,6 +845,8 @@ text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
      .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
      ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res2$I2, digits=1, format="f")), "%)")))
+res
+fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 ```{r}
 #### LF/HF MODERATORS ###
@@ -744,6 +904,29 @@ res_mod_Year_pub
 regplot(res_mod_Year_pub, mod="Year_pub", xlab="Year of Publication",
          refline=1, legend=TRUE, main="SMC of LF/HF versus Year of Publication",)
 
+#Baseline Traditional vs During Video/VR
+VR_baseline=as.factor(unlist(select(VR_study_sprdsht,c(104))))
+res_mod_VR_baseline <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_baseline) #doesnt matter if weighted or not. Same results.
+res_mod_VR_baseline
+#QM is  if the moderator level is significantly different, between-group main effect 2xgroup(male, male+female & females)
+#QE is the homogeneity test that calculated for variability within each group
+#according to Helminen, 2019 QM=QB, QE=QW)
+
+preds <- predict(res_mod_VR_baseline, newmods = cbind(0:60))
+wi <- 1/sqrt(dat$vi)
+size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
+plot(VR_baseline, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change in LF/HF", xaxt="n", bty = "l", main="SMC of LF/HF versus baseline setting")
+axis(side=1, at=1:2, labels=c("Traditional","VR/video"))
+
+#Stress Anchors
+Stress_anchor=as.numeric(unlist(select(VR_study_sprdsht,c(106))))
+res_mod_Stress_anchor <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ Stress_anchor)
+res_mod_Stress_anchor
+
+regplot(res_mod_Stress_anchor, mod="Stress_anchor", xlab="Subjective Stress",
+         refline=1, legend=TRUE, main="SMC of LF/HF versus Subjective Stress of VR Simulation",)
+
+
 ```
 
 ```{r, fig.width=6,fig.height=4}
@@ -762,7 +945,8 @@ res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in RMSSD (ms)")
-funnel(res, xlab=mes)
+#taf <- trimfill(res) #trim-and-fill analysis
+funnel(res, xlab=mes, legend=TRUE)
 ```
 
 ```{r, fig.width=10,fig.height=4}
@@ -787,6 +971,8 @@ text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
      .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
      ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res2$I2, digits=1, format="f")), "%)")))
+res
+fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 ```{r}
 #### RMSSD MODERATORS ###
@@ -844,6 +1030,30 @@ res_mod_Year_pub
 regplot(res_mod_Year_pub, mod="Year_pub", xlab="Year of Publication",
          refline=1, legend=TRUE, main="SMC of RMSSD versus Year of Publication",)
 
+#Baseline Traditional vs During Video/VR
+VR_baseline=as.factor(unlist(select(VR_study_sprdsht,c(104))))
+res_mod_VR_baseline <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_baseline) #doesnt matter if weighted or not. Same results.
+res_mod_VR_baseline
+#QM is  if the moderator level is significantly different, between-group main effect 2xgroup(male, male+female & females)
+#QE is the homogeneity test that calculated for variability within each group
+#according to Helminen, 2019 QM=QB, QE=QW)
+
+preds <- predict(res_mod_VR_baseline, newmods = cbind(0:60))
+wi <- 1/sqrt(dat$vi)
+size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
+plot(VR_baseline, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change in RMSSD", xaxt="n", bty = "l", main="SMC of RMSSD versus baseline setting")
+axis(side=1, at=1:2, labels=c("Traditional","VR/video"))
+
+#Stress Anchors
+Stress_anchor=as.numeric(unlist(select(VR_study_sprdsht,c(106))))
+res_mod_Stress_anchor <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ Stress_anchor)
+res_mod_Stress_anchor
+
+regplot(res_mod_Stress_anchor, mod="Stress_anchor", xlab="Subjective Stress",
+         refline=1, legend=TRUE, main="SMC of RMSSD versus Subjective Stress of VR Simulation",)
+
+
+
 ```
 
 ```{r, fig.width=6,fig.height=4}
@@ -862,7 +1072,8 @@ res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, 
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in Alpha Amylase (U/mL)")
-funnel(res, xlab=mes)
+#taf <- trimfill(res) #trim-and-fill analysis
+funnel(res, xlab=mes, legend=TRUE)
 ```
 
 ```{r, fig.width=10,fig.height=3.5}
@@ -887,6 +1098,9 @@ text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
      .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
      ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res2$I2, digits=1, format="f")), "%)")))
+res
+res2
+fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 
 ```{r}
@@ -912,5 +1126,27 @@ regplot(res_mod_age_c, mod="age", xlab="Age (years)",
 
 #Year of publication
 #NOTE: CANT DO ANALYSIS, All papers were published in 2019.
+
+#Baseline Traditional vs During Video/VR
+VR_baseline=as.factor(unlist(select(VR_study_sprdsht,c(104))))
+res_mod_VR_baseline <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_baseline) #doesnt matter if weighted or not. Same results.
+res_mod_VR_baseline
+#QM is  if the moderator level is significantly different, between-group main effect 2xgroup(male, male+female & females)
+#QE is the homogeneity test that calculated for variability within each group
+#according to Helminen, 2019 QM=QB, QE=QW)
+
+preds <- predict(res_mod_VR_baseline, newmods = cbind(0:60))
+wi <- 1/sqrt(dat$vi)
+size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
+plot(VR_baseline, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change in AA", xaxt="n", bty = "l", main="SMC of AA versus baseline setting")
+axis(side=1, at=1:2, labels=c("Traditional","VR/video"))
+
+#Stress Anchors
+Stress_anchor=as.numeric(unlist(select(VR_study_sprdsht,c(106))))
+res_mod_Stress_anchor <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ Stress_anchor)
+res_mod_Stress_anchor
+
+regplot(res_mod_Stress_anchor, mod="Stress_anchor", xlab="Subjective Stress",
+         refline=1, legend=TRUE, main="SMC of AA versus Subjective Stress of VR Simulation",)
 
 ```
