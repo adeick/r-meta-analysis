@@ -30,7 +30,7 @@ library(greekLetters)
 ```{r}
 #read the google spreadsheet
 gs4_deauth()
-VR_study_sprdsht <- read_sheet("https://docs.google.com/spreadsheets/d/113KZYiODuhNoohl2VNSJcs1sUsDmpp_5mnv5egAPHW4/edit?usp=sharing", range = "Outcomes - Consensus!A2:DB44")
+VR_study_sprdsht <- read_sheet("https://docs.google.com/spreadsheets/d/113KZYiODuhNoohl2VNSJcs1sUsDmpp_5mnv5egAPHW4/edit?usp=sharing", range = "Outcomes - Consensus!A2:DC44")
 numrows=nrow(VR_study_sprdsht)
 ```
 
@@ -188,6 +188,16 @@ res_mod_Stress_anchor
 regplot(res_mod_Stress_anchor, mod="Stress_anchor", xlab="Subjective Stress",
          refline=1, legend=TRUE, main="SMC of Cort versus Subjective Stress of VR Simulation",)
 
+#TSST vs non-TSST
+VR_TSST=as.factor(unlist(select(VR_study_sprdsht,c(107))))
+res_mod_VR_TSST <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_TSST) #doesnt matter if weighted or not. Same results.
+res_mod_VR_TSST
+
+preds <- predict(res_mod_VR_TSST, newmods = cbind(0:60))
+wi <- 1/sqrt(dat$vi)
+size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
+plot(VR_TSST, dat$yi, type="o", pch = 19, xlab = "VR Stressor", ylab = "Change in Cort", xaxt="n", bty = "l", main="SMC of Cort versus TSST or Non-TSST setting")
+axis(side=1, at=1:2, labels=c("Non-TSST","TSST"))
 
 ```
 
@@ -320,6 +330,17 @@ res_mod_Stress_anchor
 regplot(res_mod_Stress_anchor, mod="Stress_anchor", xlab="Subjective Stress",
          refline=1, legend=TRUE, main="SMC of HR versus Subjective Stress of VR Simulation",)
 
+#TSST vs non-TSST
+VR_TSST=as.factor(unlist(select(VR_study_sprdsht,c(107))))
+res_mod_VR_TSST <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_TSST) #doesnt matter if weighted or not. Same results.
+res_mod_VR_TSST
+
+preds <- predict(res_mod_VR_TSST, newmods = cbind(0:60))
+wi <- 1/sqrt(dat$vi)
+size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
+plot(VR_TSST, dat$yi, type="o", pch = 19, xlab = "VR Stressor", ylab = "Change in HR", xaxt="n", bty = "l", main="SMC of HR versus TSST or Non-TSST setting")
+axis(side=1, at=1:2, labels=c("Non-TSST","TSST"))
+
 ```
 
 ```{r, fig.width=6,fig.height=4}
@@ -434,6 +455,16 @@ res_mod_Stress_anchor
 regplot(res_mod_Stress_anchor, mod="Stress_anchor", xlab="Subjective Stress",
          refline=1, legend=TRUE, main="SMC of EDA versus Subjective Stress of VR Simulation",)
 
+#TSST vs non-TSST
+VR_TSST=as.factor(unlist(select(VR_study_sprdsht,c(107))))
+res_mod_VR_TSST <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_TSST) #doesnt matter if weighted or not. Same results.
+res_mod_VR_TSST
+
+preds <- predict(res_mod_VR_TSST, newmods = cbind(0:60))
+wi <- 1/sqrt(dat$vi)
+size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
+plot(VR_TSST, dat$yi, type="o", pch = 19, xlab = "VR Stressor", ylab = "Change in EDA", xaxt="n", bty = "l", main="SMC of EDA versus TSST or Non-TSST setting")
+axis(side=1, at=1:2, labels=c("Non-TSST","TSST"))
 
 ```
 
