@@ -210,6 +210,14 @@ size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, 
 plot(VR_uo, dat$yi, type="o", pch = 19, xlab = "VR Stressor", ylab = "Change in Cort", xaxt="n", bty = "l", main="SMC of Cort versus under-25 or over-25 years of age")
 axis(side=1, at=1:2, labels=c("under-25","over-25"))
 
+#Sample Size
+SampleS=as.numeric(unlist(select(VR_study_sprdsht,c(10))))
+res_mod_Stress_sample <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ SampleS)
+res_mod_Stress_sample
+
+regplot(res_mod_Stress_sample, mod="SampleS", xlab="Sample Size",
+         refline=1, legend=TRUE, main="SMC of Cort versus Sample Size",)
+
 ```
 
 
@@ -363,6 +371,14 @@ size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, 
 plot(VR_uo, dat$yi, type="o", pch = 19, xlab = "VR Stressor", ylab = "Change in HR", xaxt="n", bty = "l", main="SMC of HR versus under-25 or over-25 years of age")
 axis(side=1, at=1:2, labels=c("under-25","over-25"))
 
+#Sample Size
+SampleS=as.numeric(unlist(select(VR_study_sprdsht,c(30))))
+res_mod_Stress_sample <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ SampleS)
+res_mod_Stress_sample
+
+regplot(res_mod_Stress_sample, mod="SampleS", xlab="Sample Size",
+         refline=1, legend=TRUE, main="SMC of Heart Rate versus Sample Size",)
+
 ```
 
 ```{r, fig.width=6,fig.height=4}
@@ -498,6 +514,14 @@ wi <- 1/sqrt(dat$vi)
 size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
 plot(VR_uo, dat$yi, type="o", pch = 19, xlab = "VR Stressor", ylab = "Change in EDA", xaxt="n", bty = "l", main="SMC of EDA versus under-25 or over-25 years of age")
 axis(side=1, at=1:2, labels=c("under-25","over-25"))
+
+#Sample Size
+SampleS=as.numeric(unlist(select(VR_study_sprdsht,c(90))))
+res_mod_Stress_sample <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ SampleS)
+res_mod_Stress_sample
+
+regplot(res_mod_Stress_sample, mod="SampleS", xlab="Sample Size",
+         refline=1, legend=TRUE, main="SMC of GSR versus Sample Size",)
 
 ```
 
