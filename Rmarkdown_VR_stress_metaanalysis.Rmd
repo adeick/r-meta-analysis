@@ -359,6 +359,12 @@ wi <- 1/sqrt(dat$vi)
 size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
 plot(VR_TSST, dat$yi, type="o", pch = 19, xlab = "VR Stressor", ylab = "Change in HR", xaxt="n", bty = "l", main="SMC of HR versus TSST or Non-TSST setting")
 axis(side=1, at=1:2, labels=c("Non-TSST","TSST"))
+  dat2=data.frame(dat$yi, VR_TSST)
+  mean_group <- ddply(dat2, c("VR_TSST"), summarise, 
+                      mean=mean(dat.yi, na.rm=TRUE),
+                      sd   = sd(dat.yi, na.rm=TRUE)
+               )
+  mean_group
 
 #under 25 vs. over 25
 VR_uo=as.factor(unlist(select(VR_study_sprdsht,c(108))))
