@@ -30,7 +30,12 @@ library(greekLetters)
 ```{r}
 #read the google spreadsheet
 gs4_deauth()
-VR_study_sprdsht <- read_sheet("https://docs.google.com/spreadsheets/d/113KZYiODuhNoohl2VNSJcs1sUsDmpp_5mnv5egAPHW4/edit?usp=sharing", range = "Outcomes - Consensus!A2:DD44")
+VR_study_sprdsht <- read_sheet("https://docs.google.com/spreadsheets/d/113KZYiODuhNoohl2VNSJcs1sUsDmpp_5mnv5egAPHW4/edit?usp=sharing", range = "Outcomes - Consensus!A2:DD60")
+#nullToNA <- function(x) {
+#    x[sapply(x, is.null)] <- NA
+#    return(x)
+#}
+#nullToNA(VR_study_sprdsht)
 numrows=nrow(VR_study_sprdsht)
 ```
 
@@ -58,7 +63,7 @@ dat <-escalc(measure="SMCC", ni=cort_n2i, m1i=cort_m1i, m2i=cort_m2i, sd1i=cort_
 
 #### CORT FUNNEL PLOT, see https://wviechtb.github.io/metafor/reference/funnel.html#examples ####
 ### random-effects model
-res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+#res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res <- rma(yi, vi, data=dat,  slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 ### show effect size values on x-axis ,label points outside of the pseudo confidence interval region
@@ -80,24 +85,25 @@ forest(res,xlim=c(-20,7),
         mlab=" ")
 
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2.5), 14, c("M", "SD", "M", "SD", "N")) # value six denotes the height,posy
-text(c(-8.75,-5.25),     15, c("Baseline", "Peak")) # value three denotes the height,posy
+text(c(-9.5,-8,-6,-4.5, -2.5), 16, c("M", "SD", "M", "SD", "N")) # value 16 denotes the height,posy
+text(c(-8.75,-5.25),     17, c("Baseline", "Peak")) # value three denotes the height,posy
 par(op) # resets the plotting parameters.
-addpoly(res2, row=-1.7, cex=0.75, mlab="")
+#addpoly(res2, row=-1.7, cex=0.75, mlab="") #adds the FE statistics at the bottom
 
 ### add text with Q-value, dfs, p-value, and I^2 statistic
 text(-20, -0.8, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
-text(-20, -1.7, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
-     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
-     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
-     .(formatC(res2$I2, digits=1, format="f")), "%)")))
+#text(-20, -1.7, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
+#     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
+#     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
+#     .(formatC(res2$I2, digits=1, format="f")), "%)")))
 
-#trim-and-fill anlaysis
+#Bias Assessment
 res
-taf
+regtest(res) #Egger Test
+taf #trim-and-fill anlaysis
 fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 ```{r}
@@ -235,7 +241,7 @@ HR_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(35))))
 
 dat <-escalc(measure="SMCC", ni=HR_n1i, m1i=HR_m1i, m2i=HR_m2i, sd1i=HR_sd1i, sd2i=HR_sd2i, ri=rep.int(0.5, numrows)) #SMCC= Standardized mean change 
 
-res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+#res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 taf <- trimfill(res) #trim-and-fill analysis, I^2 >70%
@@ -250,23 +256,25 @@ forest(res,xlim=c(-20,6),
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5,-2.5), 37, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     38, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5,-2.5), 45, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     46, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
-addpoly(res2, row=-2, cex=0.75, mlab="")
+#addpoly(res2, row=-2, cex=0.75, mlab="")
 text(-20, -0.8, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
-text(-20, -2, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
-     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
-     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
-     .(formatC(res2$I2, digits=1, format="f")), "%)")))
+#text(-20, -2, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
+#     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
+#     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
+#     .(formatC(res2$I2, digits=1, format="f")), "%)")))
 
+#Bias Assessment
 res
-taf
+regtest(res) #Egger Test
+taf #trim-and-fill anlaysis
 fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 
 ```
@@ -401,7 +409,7 @@ SC_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(95))))
 dat <-escalc(measure="SMCC", ni=SC_n1i, m1i=SC_m1i, m2i=SC_m2i, sd1i=SC_sd1i, sd2i=SC_sd2i, ri=rep.int(0.5, numrows)) #SMCC= Standardized mean change 
 
 
-res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+#res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 mes=paste("Standardized Mean Change in GSR (", greek$mu,"S)")
 #taf <- trimfill(res) #trim-and-fill analysis
@@ -416,21 +424,25 @@ forest(res,xlim=c(-20,6),
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2.5), 11, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     11.7, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 15, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     16, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
-addpoly(res2, row=-1.8, cex=0.75, mlab="")
+#addpoly(res2, row=-1.8, cex=0.75, mlab="")
 text(-20, -0.8, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
-text(-20, -1.6, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
-     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
-     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
-     .(formatC(res2$I2, digits=1, format="f")), "%)")))
+#text(-20, -1.6, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
+#     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
+#     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
+#     .(formatC(res2$I2, digits=1, format="f")), "%)")))
+
+#Bias Assessment
 res
+regtest(res) #Egger Test
+#taf #trim-and-fill anlaysis
 fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 ```{r}
@@ -545,7 +557,7 @@ SBP_ni=as.numeric(unlist(select(VR_study_sprdsht,c(85))))  #+9
 
 dat <-escalc(measure="SMCC", ni=SBP_ni, m1i=SBP_m1i, m2i=SBP_m2i, sd1i=SBP_sd1i, sd2i=SBP_sd2i, ri=rep.int(0.5, numrows)) #SMCC= Standardized mean change 
 
-res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+#res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in SBP (mmHg)")
@@ -561,25 +573,26 @@ forest(res,xlim=c(-20,6),
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2.5), 5.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     6, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 8, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     8.5, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
-addpoly(res2, row=-1.5, cex=0.75, mlab="")
+#addpoly(res2, row=-1.5, cex=0.75, mlab="")
 text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
-text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
-     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
-     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
-     .(formatC(res2$I2, digits=1, format="f")), "%)")))
+#text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
+#     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
+#     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
+#     .(formatC(res2$I2, digits=1, format="f")), "%)")))
 res
-res2
+#res2
+regtest(res) #Egger Test
 taf
-taf2 <- trimfill(res2) #trim-and-fill analysis on FE
-taf2
+#taf2 <- trimfill(res2) #trim-and-fill analysis on FE
+#taf2
 fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 ```{r}
@@ -675,7 +688,7 @@ DBP_ni=as.numeric(unlist(select(VR_study_sprdsht,c(75))))
 
 dat <-escalc(measure="SMCC", ni=DBP_ni, m1i=DBP_m1i, m2i=DBP_m2i, sd1i=DBP_sd1i, sd2i=DBP_sd2i, ri=rep.int(0.5, numrows)) #SMCC= Standardized mean change 
 
-res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+#res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in DBP (mmHg)")
@@ -691,25 +704,26 @@ forest(res,xlim=c(-20,6),
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2.5), 5.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     6, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 8, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     8.5, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
-addpoly(res2, row=-1.5, cex=0.75, mlab="")
+#addpoly(res2, row=-1.5, cex=0.75, mlab="")
 text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
-text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
-     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
-     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
-     .(formatC(res2$I2, digits=1, format="f")), "%)")))
+#text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
+#     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
+#     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
+#     .(formatC(res2$I2, digits=1, format="f")), "%)")))
 res
-res2
+#res2
+regtest(res) #Egger Test
 taf
-taf2 <- trimfill(res2) #trim-and-fill analysis
-taf2
+#taf2 <- trimfill(res2) #trim-and-fill analysis
+#taf2
 fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 ```{r}
@@ -803,7 +817,7 @@ RSA_ni=as.numeric(unlist(select(VR_study_sprdsht,c(65))))  #+9
 
 dat <-escalc(measure="SMCC", ni=RSA_ni, m1i=RSA_m1i, m2i=RSA_m2i, sd1i=RSA_sd1i, sd2i=RSA_sd2i, ri=rep.int(0.5, numrows)) #SMCC= Standardized mean change 
 
-res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+#res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in RSA (ms)")
@@ -824,16 +838,17 @@ text(c(-8.75,-5.25),     5.3, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
-addpoly(res2, row=-1.6, cex=0.75, mlab="")
+#addpoly(res2, row=-1.6, cex=0.75, mlab="")
 text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
-text(-20, -1.6, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
-     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
-     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
-     .(formatC(res2$I2, digits=1, format="f")), "%)")))
+#text(-20, -1.6, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
+#     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
+#     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
+#     .(formatC(res2$I2, digits=1, format="f")), "%)")))
 res
+regtest(res) #Egger Test
 fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 
@@ -909,7 +924,7 @@ HRV_LF_HF_ni=as.numeric(unlist(select(VR_study_sprdsht,c(45))))  #+9
 
 dat <-escalc(measure="SMCC", ni=HRV_LF_HF_ni, m1i=HRV_LF_HF_m1i, m2i=HRV_LF_HF_m2i, sd1i=HRV_LF_HF_sd1i, sd2i=HRV_LF_HF_sd2i, ri=rep.int(0.5, numrows)) #SMCC= Standardized mean change 
 
-res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+#res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in LF/HF (ms)")
@@ -925,21 +940,22 @@ forest(res,xlim=c(-20,6),
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2.5), 6.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     7.3, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 8, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     9, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
-addpoly(res2, row=-1.5, cex=0.75, mlab="")
+#addpoly(res2, row=-1.5, cex=0.75, mlab="")
 text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
-text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
-     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
-     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
-     .(formatC(res2$I2, digits=1, format="f")), "%)")))
+#text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
+#     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
+#     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
+#     .(formatC(res2$I2, digits=1, format="f")), "%)")))
 res
+regtest(res) #Egger Test
 fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 ```{r}
@@ -1035,7 +1051,7 @@ HRV_RMSSD_ni=as.numeric(unlist(select(VR_study_sprdsht,c(55))))  #+9
 
 dat <-escalc(measure="SMCC", ni=HRV_RMSSD_ni, m1i=HRV_RMSSD_m1i, m2i=HRV_RMSSD_m2i, sd1i=HRV_RMSSD_sd1i, sd2i=HRV_RMSSD_sd2i, ri=rep.int(0.5, numrows)) #SMCC= Standardized mean change 
 
-res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+#res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in RMSSD (ms)")
@@ -1051,21 +1067,22 @@ forest(res,xlim=c(-20,6),
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-12.5,-11,-9,-7.5, -5.5), 7.5, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-11.75,-8.25),     8.3, c("Baseline", "Peak"))
+text(c(-12.5,-11,-9,-7.5, -5.5), 12, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-11.75,-8.25),     13, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
-addpoly(res2, row=-1.5, cex=0.75, mlab="")
+#addpoly(res2, row=-1.5, cex=0.75, mlab="")
 text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
-text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
-     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
-     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
-     .(formatC(res2$I2, digits=1, format="f")), "%)")))
+#text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
+#     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
+#     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
+#     .(formatC(res2$I2, digits=1, format="f")), "%)")))
 res
+regtest(res) #Egger Test
 fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 ```{r}
@@ -1162,7 +1179,7 @@ AA_ni=as.numeric(unlist(select(VR_study_sprdsht,c(25))))  #+9
 
 dat <-escalc(measure="SMCC", ni=AA_ni, m1i=AA_m1i, m2i=AA_m2i, sd1i=AA_sd1i, sd2i=AA_sd2i, ri=rep.int(0.5, numrows)) #SMCC= Standardized mean change 
 
-res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
+#res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in Alpha Amylase (U/mL)")
@@ -1178,22 +1195,23 @@ forest(res,xlim=c(-20,6),
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5, -2.5), 4.8, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     5.4, c("Baseline", "Peak"))
+text(c(-9.5,-8,-6,-4.5, -2.5), 6, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-8.75,-5.25),     6.5, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
-addpoly(res2, row=-1.5, cex=0.75, mlab="")
+#addpoly(res2, row=-1.5, cex=0.75, mlab="")
 text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
      .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
      ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
      .(formatC(res$I2, digits=1, format="f")), "%)")))
-text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
-     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
-     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
-     .(formatC(res2$I2, digits=1, format="f")), "%)")))
+#text(-20, -1.5, pos=4, cex=0.75, bquote(paste("FE Model (Q = ",
+#     .(formatC(res2$QE, digits=2, format="f")), ", df = ", .(res2$k - res2$p),
+#     ", p = ", .(formatC(res2$QEp, digits=2, format="f")), "; ", I^2, " = ",
+#     .(formatC(res2$I2, digits=1, format="f")), "%)")))
 res
-res2
+#res2
+regtest(res) #Egger Test
 fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 
