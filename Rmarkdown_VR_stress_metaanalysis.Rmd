@@ -37,7 +37,23 @@ VR_study_sprdsht <- read_sheet("https://docs.google.com/spreadsheets/d/113KZYiOD
 #}
 #nullToNA(VR_study_sprdsht)
 numrows=nrow(VR_study_sprdsht)
+
 ```
+
+````{r}
+#declare a function
+rounded_value <- function(value) {
+
+#if (is.na(value)) return (NA)
+if (value >= 0.001 && value < 0.1) {value <- round(value,3)}
+else if (value >= 0.1 && value < 10) {value <- round(value,2)}
+else if (value >= 10 && value < 100) {value <- round(value,1)}
+else if (value >= 100) {value <- round(value,0)}
+
+return (value)
+}
+
+````
 
 ## R Markdown
 
@@ -51,10 +67,16 @@ When you click the **Knit** button a document will be generated that includes bo
 #Calculate cort effect size
 cort_m2i=as.numeric(unlist(select(VR_study_sprdsht,c(6))))#baseline  #select the columns you want, then convert from list to numeric array
 cort_m1i=as.numeric(unlist(select(VR_study_sprdsht,c(11)))) #peak
-cort_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(7)) ))
-cort_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(12)))) 
+cort_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(7))))
+cort_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(12))))
 cort_n2i=as.numeric(unlist(select(VR_study_sprdsht,c(10))))
 cort_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(15))))
+cort_m2i <- rounded_value(cort_m2i)
+cort_m1i <- rounded_value(cort_m1i)
+cort_sd2i <- rounded_value(cort_sd2i)
+cort_sd1i <- rounded_value(cort_sd1i)
+cort_n2i <- rounded_value(cort_n2i)
+cort_n1i <- rounded_value(cort_n1i)
 
 dat <-escalc(measure="SMCC", ni=cort_n2i, m1i=cort_m1i, m2i=cort_m2i, sd1i=cort_sd1i, sd2i=cort_sd2i, ri=rep.int(0.5, numrows)) #SMCC= Standardized mean change 
 #NOTE: yi=vector to specify the observed effects or outcomes, vi=vector to specify the corresponding sampling variances.
@@ -70,6 +92,7 @@ res <- rma(yi, vi, data=dat,  slab=paste(VR_study_sprdsht$Authors, VR_study_sprd
 #mu=symbol("mu");
 mes=paste("Standardized Mean Change in Cortisol (",greek$mu,"g/dl)")
 taf <- trimfill(res) #trim-and-fill analysis
+funnel(res, xlab=mes, legend=TRUE)
 funnel(taf, xlab=mes, legend=TRUE) # add ", atransf=exp" in the parentheses to log scale the x-axis
 ```
 
@@ -103,7 +126,7 @@ text(-20, -0.8, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
 #Bias Assessment
 res
 regtest(res) #Egger Test
-taf #trim-and-fill anlaysis
+taf #trim-and-fill analysis
 fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 ```{r}
@@ -112,6 +135,7 @@ fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-sign
 
 #USE THE VALUES FROM THE RANDOM-EFFECT NULL MODEL
 # Age was ﬁrst analyzed as a continuous variable. Weighted regression analyses using mean age of participants as the predictor variable was performed on the study data.
+cat('Age')
 age=as.numeric(unlist(select(VR_study_sprdsht,c(96))))
 res_mod_age_c <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods=~age)
 res_mod_age_c
@@ -129,6 +153,7 @@ res_mod_age_c
          refline=1, legend=TRUE, main="SMC of Cort versus Age",)
 
 # Sex was ﬁrst analyzed as a continuous variable as percentage of male participants. Weighted regression analyses using percent male participants as the predictor variable was performed on the study data.
+cat('Sex Con')
 sex_male_per=as.numeric(unlist(select(VR_study_sprdsht,c(102))))
 res_mod_male_c <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ sex_male_per)
 res_mod_male_c
@@ -137,6 +162,7 @@ regplot(res_mod_male_c, mod="sex_male_per", xlab="Percent Male",
          refline=1, legend=TRUE, main="SMC of Cort versus Percewnt Male",)
 
 # Sex were split into two groups, including a group with studies including only male participants (n = 6), and a group of studies including either participants with both sexes (n = 5) or only female participants (n = 2).
+cat('Sex group')
 sex_male_dum=as.factor(unlist(select(VR_study_sprdsht,c(100))))
 res_mod_male_dum <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=sex_male_dum) #doesnt matter if weighted or not. Same results.
 res_mod_male_dum
@@ -151,6 +177,7 @@ plot(sex_male_dum, dat$yi, type="o", pch = 19, xlab = "Group Sex Composition", y
 axis(side=1, at=1:2, labels=c("all male","male+female, or all female"))
 
 #Headset vs, CAVE
+cat('Headset vs, CAVE')
 VR_medium=as.factor(unlist(select(VR_study_sprdsht,c(105))))
 res_mod_VR_medium <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_medium) #doesnt matter if weighted or not. Same results.
 res_mod_VR_medium
@@ -165,6 +192,7 @@ plot(VR_medium, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change i
 axis(side=1, at=1:2, labels=c("HMD","CAVE"))
 
 #Year of publication
+cat('Year of publication')
 Year_pub=as.numeric(unlist(select(VR_study_sprdsht,c(4))))
 res_mod_Year_pub <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ Year_pub)
 res_mod_Year_pub
@@ -173,6 +201,7 @@ regplot(res_mod_Year_pub, mod="Year_pub", xlab="Year of Publication",
          refline=1, legend=TRUE, main="SMC of Cort versus Year of Publication",)
 
 #Baseline Traditional vs During Video/VR
+cat('Baseline Traditional vs During Video/VR')
 VR_baseline=as.factor(unlist(select(VR_study_sprdsht,c(104))))
 res_mod_VR_baseline <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_baseline) #doesnt matter if weighted or not. Same results.
 res_mod_VR_baseline
@@ -187,6 +216,7 @@ plot(VR_baseline, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change
 axis(side=1, at=1:2, labels=c("Traditional","VR/video"))
 
 #Stress Anchors
+cat('stress anchors')
 Stress_anchor=as.numeric(unlist(select(VR_study_sprdsht,c(106))))
 res_mod_Stress_anchor <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ Stress_anchor)
 res_mod_Stress_anchor
@@ -195,6 +225,7 @@ regplot(res_mod_Stress_anchor, mod="Stress_anchor", xlab="Subjective Stress",
          refline=1, legend=TRUE, main="SMC of Cort versus Subjective Stress of VR Simulation",)
 
 #TSST vs non-TSST
+cat('TSST vs non-TSST')
 VR_TSST=as.factor(unlist(select(VR_study_sprdsht,c(107))))
 res_mod_VR_TSST <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_TSST) #doesnt matter if weighted or not. Same results.
 res_mod_VR_TSST
@@ -206,6 +237,7 @@ plot(VR_TSST, dat$yi, type="o", pch = 19, xlab = "VR Stressor", ylab = "Change i
 axis(side=1, at=1:2, labels=c("Non-TSST","TSST"))
 
 #under 25 vs. over 25
+cat('under 25 vs. over 25')
 VR_uo=as.factor(unlist(select(VR_study_sprdsht,c(108))))
 res_mod_VR_uo <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_uo) #doesnt matter if weighted or not. Same results.
 res_mod_VR_uo
@@ -217,6 +249,7 @@ plot(VR_uo, dat$yi, type="o", pch = 19, xlab = "VR Stressor", ylab = "Change in 
 axis(side=1, at=1:2, labels=c("under-25","over-25"))
 
 #Sample Size
+cat('Sample Size')
 SampleS=as.numeric(unlist(select(VR_study_sprdsht,c(10))))
 res_mod_Stress_sample <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ SampleS)
 res_mod_Stress_sample
@@ -238,6 +271,12 @@ HR_sd2i=as.numeric(unlist(select(VR_study_sprdsht,c(27)) ))
 HR_sd1i=as.numeric(unlist(select(VR_study_sprdsht,c(32)))) 
 HR_n2i=as.numeric(unlist(select(VR_study_sprdsht,c(30))))
 HR_n1i=as.numeric(unlist(select(VR_study_sprdsht,c(35))))
+HR_m2i <- rounded_value(HR_m2i)
+HR_m1i <- rounded_value(HR_m1i)
+HR_sd2i <- rounded_value(HR_sd2i)
+HR_sd1i <- rounded_value(HR_sd1i)
+HR_n2i <- rounded_value(HR_n2i)
+HR_n1i <- rounded_value(HR_n1i)
 
 dat <-escalc(measure="SMCC", ni=HR_n1i, m1i=HR_m1i, m2i=HR_m2i, sd1i=HR_sd1i, sd2i=HR_sd2i, ri=rep.int(0.5, numrows)) #SMCC= Standardized mean change 
 
@@ -245,19 +284,20 @@ dat <-escalc(measure="SMCC", ni=HR_n1i, m1i=HR_m1i, m2i=HR_m2i, sd1i=HR_sd1i, sd
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 taf <- trimfill(res) #trim-and-fill analysis, I^2 >70%
+funnel(res, xlab="Standardized Mean Change in Heart Rate (BPM)", legend=TRUE)
 funnel(taf, xlab="Standardized Mean Change in Heart Rate (BPM)", legend=TRUE)
 ```
 
 ```{r, fig.width=10,fig.height=7}
 #forest(res,header=TRUE, cex=.8)
-forest(res,xlim=c(-20,6), 
+forest(res,xlim=c(-20,10), 
        ilab=cbind(HR_m2i, HR_sd2i, HR_m1i, HR_sd1i, HR_n1i),
-       ilab.xpos=c(-9.5,-8,-6,-4.5, -2.5), cex=.75,
+       ilab.xpos=c(-11.5,-10,-8,-6.5, -4.5), cex=.75,
        header="Author(s) and Year",
        mlab=" ")
 op <- par(cex=.75, font=2)
-text(c(-9.5,-8,-6,-4.5,-2.5), 45, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
-text(c(-8.75,-5.25),     46, c("Baseline", "Peak"))
+text(c(-11.5,-10,-8,-6.5, -4.5), 45, c("M", "SD", "M", "SD", "N")) #6 denotes the height,posy
+text(c(-10.75,-7.25),     46, c("Baseline", "Peak"))
 par(op) # resets the plotting parameters.
 
 #bottom labels
@@ -314,6 +354,7 @@ plot(sex_male_dum, dat$yi, type="o", pch = 19, xlab = "Group Sex Composition", y
 axis(side=1, at=1:2, labels=c("all male","male+female, or all female"))
 
 #Headset vs, CAVE
+cat('Headset vs, CAVE')
 VR_medium=as.factor(unlist(select(VR_study_sprdsht,c(105))))
 res_mod_VR_medium <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_medium) #doesnt matter if weighted or not. Same results.
 res_mod_VR_medium
@@ -328,6 +369,7 @@ plot(VR_medium, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change i
 axis(side=1, at=1:2, labels=c("HMD","CAVE"))
 
 #Year of publication
+cat('Year of publication')
 Year_pub=as.numeric(unlist(select(VR_study_sprdsht,c(4))))
 res_mod_Year_pub <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ Year_pub)
 res_mod_Year_pub
@@ -336,6 +378,7 @@ regplot(res_mod_Year_pub, mod="Year_pub", xlab="Year of Publication",
          refline=1, legend=TRUE, main="SMC of Heart Rate versus Year of Publication",)
 
 #Baseline Traditional vs During Video/VR
+cat('Baseline Traditional vs During Video/VR')
 VR_baseline=as.factor(unlist(select(VR_study_sprdsht,c(104))))
 res_mod_VR_baseline <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_baseline) #doesnt matter if weighted or not. Same results.
 res_mod_VR_baseline
@@ -350,6 +393,7 @@ plot(VR_baseline, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change
 axis(side=1, at=1:2, labels=c("Traditional","VR/video"))
 
 #Stress Anchors
+cat('Stress Anchors')
 Stress_anchor=as.numeric(unlist(select(VR_study_sprdsht,c(106))))
 res_mod_Stress_anchor <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ Stress_anchor)
 res_mod_Stress_anchor
@@ -358,6 +402,7 @@ regplot(res_mod_Stress_anchor, mod="Stress_anchor", xlab="Subjective Stress",
          refline=1, legend=TRUE, main="SMC of HR versus Subjective Stress of VR Simulation",)
 
 #TSST vs non-TSST
+cat('TSST vs non-TSST')
 VR_TSST=as.factor(unlist(select(VR_study_sprdsht,c(107))))
 res_mod_VR_TSST <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_TSST) #doesnt matter if weighted or not. Same results.
 res_mod_VR_TSST
@@ -375,6 +420,7 @@ axis(side=1, at=1:2, labels=c("Non-TSST","TSST"))
   mean_group
 
 #under 25 vs. over 25
+  cat('under 25 vs. over 25')
 VR_uo=as.factor(unlist(select(VR_study_sprdsht,c(108))))
 res_mod_VR_uo <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_uo) #doesnt matter if weighted or not. Same results.
 res_mod_VR_uo
@@ -386,6 +432,7 @@ plot(VR_uo, dat$yi, type="o", pch = 19, xlab = "VR Stressor", ylab = "Change in 
 axis(side=1, at=1:2, labels=c("under-25","over-25"))
 
 #Sample Size
+cat('Sample Size')
 SampleS=as.numeric(unlist(select(VR_study_sprdsht,c(30))))
 res_mod_Stress_sample <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ SampleS)
 res_mod_Stress_sample
@@ -412,8 +459,9 @@ dat <-escalc(measure="SMCC", ni=SC_n1i, m1i=SC_m1i, m2i=SC_m2i, sd1i=SC_sd1i, sd
 #res2 <- rma(yi, vi, method="FE", data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 mes=paste("Standardized Mean Change in GSR (", greek$mu,"S)")
-#taf <- trimfill(res) #trim-and-fill analysis
+taf <- trimfill(res) #trim-and-fill analysis
 funnel(res, xlab=mes, legend=TRUE)
+funnel(taf, xlab=mes, legend=TRUE)
 ```
 
 ```{r, fig.width=10,fig.height=4}
@@ -442,7 +490,7 @@ text(-20, -0.8, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
 #Bias Assessment
 res
 regtest(res) #Egger Test
-#taf #trim-and-fill anlaysis
+taf #trim-and-fill anlaysis
 fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 ```{r}
@@ -482,6 +530,7 @@ axis(side=1, at=1:2, labels=c("all male","male+female, or all female"))
 # NOTE: NO STUDIES USING CAVES MEASURED EDA, SO THIS ANALYSIS CANNOT BE PREFORMED
 
 #Year of publication
+cat('Year of publication')
 Year_pub=as.numeric(unlist(select(VR_study_sprdsht,c(4))))
 res_mod_Year_pub <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ Year_pub)
 res_mod_Year_pub
@@ -490,6 +539,7 @@ regplot(res_mod_Year_pub, mod="Year_pub", xlab="Year of Publication",
          refline=1, legend=TRUE, main="SMC of EDA versus Year of Publication",)
 
 #Baseline Traditional vs During Video/VR
+cat('Baseline Traditional vs During Video/VR')
 VR_baseline=as.factor(unlist(select(VR_study_sprdsht,c(104))))
 res_mod_VR_baseline <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_baseline) #doesnt matter if weighted or not. Same results.
 res_mod_VR_baseline
@@ -504,6 +554,7 @@ plot(VR_baseline, dat$yi, type="o", pch = 19, xlab = "VR medium", ylab = "Change
 axis(side=1, at=1:2, labels=c("Traditional","VR/video"))
 
 #Stress Anchors
+cat('Stress Anchors')
 Stress_anchor=as.numeric(unlist(select(VR_study_sprdsht,c(106))))
 res_mod_Stress_anchor <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), weighted=TRUE, mods= ~ Stress_anchor)
 res_mod_Stress_anchor
@@ -512,6 +563,7 @@ regplot(res_mod_Stress_anchor, mod="Stress_anchor", xlab="Subjective Stress",
          refline=1, legend=TRUE, main="SMC of EDA versus Subjective Stress of VR Simulation",)
 
 #TSST vs non-TSST
+cat('TSST vs non-TSST')
 VR_TSST=as.factor(unlist(select(VR_study_sprdsht,c(107))))
 res_mod_VR_TSST <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "), mods=VR_TSST) #doesnt matter if weighted or not. Same results.
 res_mod_VR_TSST
@@ -519,8 +571,14 @@ res_mod_VR_TSST
 preds <- predict(res_mod_VR_TSST, newmods = cbind(0:60))
 wi <- 1/sqrt(dat$vi)
 size <- 0.5 + 3 * (wi - min(wi, na.rm = TRUE))/(max(wi, na.rm = TRUE) - min(wi, na.rm = TRUE))
-plot(VR_TSST, dat$yi, type="o", pch = 19, xlab = "VR Stressor", ylab = "Change in EDA", xaxt="n", bty = "l", main="SMC of EDA versus TSST or Non-TSST setting")
+plot(VR_TSST, dat$yi, type="o", pch = 19, xlab = "VR Stressor", ylab = "Change in HR", xaxt="n", bty = "l", main="SMC of HR versus TSST or Non-TSST setting")
 axis(side=1, at=1:2, labels=c("Non-TSST","TSST"))
+  dat2=data.frame(dat$yi, VR_TSST)
+  mean_group <- ddply(dat2, c("VR_TSST"), summarise, 
+                      mean=mean(dat.yi, na.rm=TRUE),
+                      sd   = sd(dat.yi, na.rm=TRUE)
+               )
+  mean_group
 
 #under 25 vs. over 25
 VR_uo=as.factor(unlist(select(VR_study_sprdsht,c(108))))
@@ -563,6 +621,7 @@ res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprds
 mes=paste("Standardized Mean Change in SBP (mmHg)")
 taf <- trimfill(res) #trim-and-fill analysis
 funnel(res, xlab=mes,legend=TRUE)
+funnel(taf, xlab=mes,legend=TRUE)
 ```
 
 ```{r, fig.width=10,fig.height=4}
@@ -590,7 +649,7 @@ text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
 res
 #res2
 regtest(res) #Egger Test
-taf
+taf #trim-and-fill analysis
 #taf2 <- trimfill(res2) #trim-and-fill analysis on FE
 #taf2
 fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
@@ -694,6 +753,7 @@ res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprds
 mes=paste("Standardized Mean Change in DBP (mmHg)")
 taf <- trimfill(res) #trim-and-fill analysis
 funnel(res, xlab=mes, legend=TRUE)
+funnel(taf, xlab=mes, legend=TRUE)
 ```
 
 ```{r, fig.width=10,fig.height=4}
@@ -821,8 +881,9 @@ dat <-escalc(measure="SMCC", ni=RSA_ni, m1i=RSA_m1i, m2i=RSA_m2i, sd1i=RSA_sd1i,
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in RSA (ms)")
-#taf <- trimfill(res) #trim-and-fill analysis
+taf <- trimfill(res) #trim-and-fill analysis
 funnel(res, xlab=mes, legend=TRUE)
+funnel(taf, xlab=mes, legend=TRUE) #NOTE: TAF looks weird because the Egger test say NO asymmetry, therefore TAF is not needed.
 ```
 
 ```{r, fig.width=10,fig.height=3}
@@ -849,6 +910,7 @@ text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
 #     .(formatC(res2$I2, digits=1, format="f")), "%)")))
 res
 regtest(res) #Egger Test
+taf #trim-and-fill analysis
 fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 
@@ -928,8 +990,9 @@ dat <-escalc(measure="SMCC", ni=HRV_LF_HF_ni, m1i=HRV_LF_HF_m1i, m2i=HRV_LF_HF_m
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in LF/HF (ms)")
-#taf <- trimfill(res) #trim-and-fill analysis
+taf <- trimfill(res) #trim-and-fill analysis
 funnel(res, xlab=mes, legend=TRUE)
+funnel(taf, xlab=mes, legend=TRUE) #NOTE: TAF looks weird because the Egger test say NO asymmetry, therefore TAF is not needed.
 ```
 
 ```{r, fig.width=10,fig.height=3.5}
@@ -956,6 +1019,7 @@ text(-20, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
 #     .(formatC(res2$I2, digits=1, format="f")), "%)")))
 res
 regtest(res) #Egger Test
+taf #trim-and-fill analysis
 fsn(yi, vi, data=dat, weighted=TRUE, type="Orwin", target=.2) #how many non-signifcant studies to lower the effect to d=0.2
 ```
 ```{r}
@@ -1055,8 +1119,9 @@ dat <-escalc(measure="SMCC", ni=HRV_RMSSD_ni, m1i=HRV_RMSSD_m1i, m2i=HRV_RMSSD_m
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in RMSSD (ms)")
-#taf <- trimfill(res) #trim-and-fill analysis
+taf <- trimfill(res) #trim-and-fill analysis
 funnel(res, xlab=mes, legend=TRUE)
+funnel(taf, xlab=mes, legend=TRUE)
 ```
 
 ```{r, fig.width=10,fig.height=4}
@@ -1183,8 +1248,9 @@ dat <-escalc(measure="SMCC", ni=AA_ni, m1i=AA_m1i, m2i=AA_m2i, sd1i=AA_sd1i, sd2
 res <- rma(yi, vi, data=dat, slab=paste(VR_study_sprdsht$Authors, VR_study_sprdsht$Year, sep=", "))
 
 mes=paste("Standardized Mean Change in Alpha Amylase (U/mL)")
-#taf <- trimfill(res) #trim-and-fill analysis
+taf <- trimfill(res) #trim-and-fill analysis
 funnel(res, xlab=mes, legend=TRUE)
+funnel(taf, xlab=mes, legend=TRUE)
 ```
 
 ```{r, fig.width=10,fig.height=3.5}
